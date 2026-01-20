@@ -62,12 +62,26 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const mockReact = require('react');
+  const mockView = require('react-native').View;
+  return {
+    SafeAreaProvider: ({ children }: { children: unknown }) => children,
+    SafeAreaView: ({ children, ...props }: { children: unknown; [key: string]: unknown }) =>
+      mockReact.createElement(mockView, props, children),
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+  };
+});
+
 // Silence console warnings in tests
 const originalWarn = console.warn;
 console.warn = (...args) => {
   if (
     typeof args[0] === 'string' &&
-    args[0].includes('Animated: `useNativeDriver`')
+    (args[0].includes('Animated: `useNativeDriver`') ||
+     args[0].includes('SafeAreaView has been deprecated'))
   ) {
     return;
   }

@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Text, Button, Card } from '@/components/ui';
-import { useTheme } from '@/contexts/ThemeContext';
+import { Button, Card, Text } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import { SafeAreaView, View } from 'react-native';
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -22,9 +22,7 @@ export default function DashboardScreen() {
       <View style={{ flex: 1, padding: 20, gap: 24 }}>
         {/* Header */}
         <View style={{ gap: 8 }}>
-          <Text variant="hero" uppercase>
-            El Hub
-          </Text>
+        
           <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
           <Text variant="body" color="textMuted">
             Bienvenido, {user?.email?.split('@')[0] || 'Usuario'}

@@ -23,6 +23,27 @@ export default function TabLayout() {
           tabBarLabel: 'Hub',
         }}
       />
+      <Tabs.Screen
+        name="workout"
+        options={{
+          title: 'Entreno',
+          tabBarLabel: 'Entreno',
+        }}
+      />
+      <Tabs.Screen
+        name="nutrition"
+        options={{
+          title: 'Nutrición',
+          tabBarLabel: 'Nutrición',
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarLabel: 'Perfil',
+        }}
+      />
     </Tabs>
   );
 }

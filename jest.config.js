@@ -24,5 +24,5 @@ module.exports = {
     '!**/__tests__/**',
     '!**/__mocks__/**',
   ],
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
 };

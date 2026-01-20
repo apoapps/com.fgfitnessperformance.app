@@ -2,6 +2,9 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ProfileProvider } from '@/contexts/ProfileContext';
+import { WorkoutProvider } from '@/contexts/WorkoutContext';
+import { NutritionProvider } from '@/contexts/NutritionContext';
 import '../global.css';
 
 function RootLayoutContent() {
@@ -23,7 +26,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RootLayoutContent />
+        <ProfileProvider>
+          <WorkoutProvider>
+            <NutritionProvider>
+              <RootLayoutContent />
+            </NutritionProvider>
+          </WorkoutProvider>
+        </ProfileProvider>
       </AuthProvider>
     </ThemeProvider>
   );
