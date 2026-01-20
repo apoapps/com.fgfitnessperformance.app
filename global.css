@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The Forge - Custom CSS Variables for theming */
+:root {
+  --color-background: #09090b;
+  --color-surface: #18181b;
+  --color-surface-highlight: #27272a;
+  --color-primary: #ffd801;
+  --color-primary-dim: rgba(255, 216, 1, 0.15);
+  --color-text: #ffffff;
+  --color-text-muted: #a1a1aa;
+  --color-border: #27272a;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+  --blur-intensity: 80;
+}
+
+/* Light mode overrides */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-background: #fafafa;
+    --color-surface: #ffffff;
+    --color-surface-highlight: #f4f4f5;
+    --color-primary: #ca8a04;
+    --color-primary-dim: rgba(202, 138, 4, 0.12);
+    --color-text: #09090b;
+    --color-text-muted: #71717a;
+    --color-border: #e4e4e7;
+    --color-danger: #dc2626;
+    --color-success: #16a34a;
+    --blur-intensity: 60;
+  }
+}
