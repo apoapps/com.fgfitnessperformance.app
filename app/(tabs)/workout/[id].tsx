@@ -2,219 +2,68 @@ import React, { useMemo } from 'react';
 import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Text, Button, Card } from '@/components/ui';
+import { Text, Button } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
-import type { Exercise, WorkoutDay } from '@/__mocks__/types/database.types';
-
-interface ExerciseCardProps {
-  exercise: Exercise;
-  isInSuperset?: boolean;
-}
-
-function ExerciseCard({ exercise, isInSuperset = false }: ExerciseCardProps) {
-  const { colors } = useTheme();
-
-  return (
-    <View
-      testID={`exercise-card-${exercise.exercise_instance_id}`}
-      style={{
-        backgroundColor: isInSuperset ? 'transparent' : colors.surfaceHighlight,
-        borderRadius: isInSuperset ? 0 : 12,
-        padding: 16,
-        gap: 12,
-      }}
-    >
-      {/* Exercise Name */}
-      <Text variant="title" style={{ fontSize: 16 }}>
-        {exercise.name}
-      </Text>
-
-      {/* Metrics Row */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-        {/* Sets */}
-        <View style={{ gap: 2 }}>
-          <Text variant="caption" color="textMuted">
-            Series
-          </Text>
-          <Text variant="body" style={{ fontWeight: '600' }}>
-            {exercise.sets} series
-          </Text>
-        </View>
-
-        {/* Reps */}
-        <View style={{ gap: 2 }}>
-          <Text variant="caption" color="textMuted">
-            Repeticiones
-          </Text>
-          <Text variant="body" style={{ fontWeight: '600' }}>
-            {exercise.reps}
-          </Text>
-        </View>
-
-        {/* Rest */}
-        {exercise.rest && (
-          <View style={{ gap: 2 }}>
-            <Text variant="caption" color="textMuted">
-              Descanso
-            </Text>
-            <Text variant="body" style={{ fontWeight: '600' }}>
-              {exercise.rest}
-            </Text>
-          </View>
-        )}
-
-        {/* Weight/Load */}
-        {exercise.weight && (
-          <View style={{ gap: 2 }}>
-            <Text variant="caption" color="textMuted">
-              Carga
-            </Text>
-            <Text variant="body" style={{ fontWeight: '600' }}>
-              {exercise.weight}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Notes */}
-      {exercise.notes && (
-        <View
-          style={{
-            backgroundColor: colors.surface,
-            borderRadius: 8,
-            padding: 12,
-            borderLeftWidth: 3,
-            borderLeftColor: colors.primary,
-          }}
-        >
-          <Text variant="bodySm" color="textMuted">
-            {exercise.notes}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-interface SupersetBlockProps {
-  exercises: Exercise[];
-  supersetId: string;
-}
-
-function SupersetBlock({ exercises, supersetId }: SupersetBlockProps) {
-  const { colors } = useTheme();
-
-  return (
-    <View
-      testID={`superset-block-${supersetId}`}
-      style={{
-        borderWidth: 2,
-        borderColor: colors.primary,
-        borderRadius: 16,
-        overflow: 'hidden',
-      }}
-    >
-      {/* Superset Header */}
-      <View
-        style={{
-          backgroundColor: colors.primary + '20',
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.primary + '40',
-        }}
-      >
-        <Text variant="caption" style={{ color: colors.primary, fontWeight: '600' }}>
-          SUPERSET
-        </Text>
-      </View>
-
-      {/* Exercises */}
-      <View style={{ gap: 1, backgroundColor: colors.border }}>
-        {exercises.map((exercise, index) => (
-          <View key={exercise.exercise_instance_id} style={{ backgroundColor: colors.surfaceHighlight }}>
-            <ExerciseCard exercise={exercise} isInSuperset />
-            {index < exercises.length - 1 && (
-              <View
-                style={{
-                  marginHorizontal: 16,
-                  height: 1,
-                  backgroundColor: colors.border,
-                }}
-              />
-            )}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
+import { WorkoutBlock, ObjectiveCard } from '@/components/workout';
+import type { WorkoutDay } from '@/types/workout';
 
 export default function WorkoutDetailScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const params = useLocalSearchParams<{ id: string; week: string; day: string }>();
+  const params = useLocalSearchParams<{ id: string; day: string }>();
 
-  const { activeWorkout, isLoading, getWorkoutById } = useWorkout();
+  const { workoutPlan, isLoading, selectedDay, setSelectedDay } = useWorkout();
 
-  const workoutId = params.id;
-  const weekNumber = parseInt(params.week || '1', 10);
-  const dayNumber = parseInt(params.day || '1', 10);
+  // Parse the day from params or use selected day
+  const dayNumber = params.day ? parseInt(params.day, 10) : selectedDay;
 
-  // Get the specific workout day
+  // Get the specific workout day from the plan structure
   const workoutDay = useMemo<WorkoutDay | null>(() => {
-    const workout = getWorkoutById(workoutId);
-    if (!workout?.structure?.weeks) return null;
+    if (!workoutPlan?.structure?.weeks) return null;
 
-    const week = workout.structure.weeks.find((w) => w.week_number === weekNumber);
-    if (!week) return null;
-
-    return week.days.find((d) => d.day_number === dayNumber) || null;
-  }, [getWorkoutById, workoutId, weekNumber, dayNumber]);
-
-  // Group exercises by superset
-  const groupedExercises = useMemo(() => {
-    if (!workoutDay?.exercises) return [];
-
-    const exercises = [...workoutDay.exercises].sort((a, b) => a.order - b.order);
-    const groups: { type: 'single' | 'superset'; exercises: Exercise[]; id: string }[] = [];
-    const processed = new Set<string>();
-
-    for (const exercise of exercises) {
-      if (processed.has(exercise.exercise_instance_id)) continue;
-
-      if (exercise.is_superset && exercise.superset_with) {
-        // Find the paired exercise
-        const paired = exercises.find((e) => e.exercise_instance_id === exercise.superset_with);
-        if (paired && !processed.has(paired.exercise_instance_id)) {
-          groups.push({
-            type: 'superset',
-            exercises: [exercise, paired],
-            id: exercise.exercise_instance_id,
-          });
-          processed.add(exercise.exercise_instance_id);
-          processed.add(paired.exercise_instance_id);
-        } else {
-          groups.push({
-            type: 'single',
-            exercises: [exercise],
-            id: exercise.exercise_instance_id,
-          });
-          processed.add(exercise.exercise_instance_id);
+    // Find the day by counting through all weeks
+    let dayCounter = 0;
+    for (const week of workoutPlan.structure.weeks) {
+      for (const day of week.days) {
+        dayCounter++;
+        if (dayCounter === dayNumber) {
+          return day;
         }
-      } else {
-        groups.push({
-          type: 'single',
-          exercises: [exercise],
-          id: exercise.exercise_instance_id,
-        });
-        processed.add(exercise.exercise_instance_id);
       }
     }
 
-    return groups;
+    return null;
+  }, [workoutPlan, dayNumber]);
+
+  // Get week info for the current day
+  const weekInfo = useMemo(() => {
+    if (!workoutPlan?.structure?.weeks) return null;
+
+    let dayCounter = 0;
+    for (const week of workoutPlan.structure.weeks) {
+      for (const _day of week.days) {
+        dayCounter++;
+        if (dayCounter === dayNumber) {
+          return { weekNumber: week.weekNumber, weekName: week.name };
+        }
+      }
+    }
+    return null;
+  }, [workoutPlan, dayNumber]);
+
+  // Count total exercises across all blocks
+  const totalExercises = useMemo(() => {
+    if (!workoutDay?.blocks) return 0;
+    return workoutDay.blocks.reduce((total, block) => total + block.exercises.length, 0);
   }, [workoutDay]);
+
+  // Generate block labels (A, B, C, etc.)
+  const blockLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+  const handleExercisePress = (exerciseId: string, exerciseName: string) => {
+    router.push(`/exercise/${exerciseId}?name=${encodeURIComponent(exerciseName)}`);
+  };
 
   if (isLoading) {
     return (
@@ -264,8 +113,6 @@ export default function WorkoutDetailScreen() {
     );
   }
 
-  const exerciseCount = workoutDay.exercises?.length || 0;
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ flex: 1 }}>
@@ -289,16 +136,18 @@ export default function WorkoutDetailScreen() {
             </Pressable>
 
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <View
-                style={{
-                  backgroundColor: colors.surfaceHighlight,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 16,
-                }}
-              >
-                <Text variant="bodySm">Semana {weekNumber}</Text>
-              </View>
+              {weekInfo && (
+                <View
+                  style={{
+                    backgroundColor: colors.surfaceHighlight,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 16,
+                  }}
+                >
+                  <Text variant="bodySm">Semana {weekInfo.weekNumber}</Text>
+                </View>
+              )}
               <View
                 style={{
                   backgroundColor: colors.primary,
@@ -319,30 +168,30 @@ export default function WorkoutDetailScreen() {
             <Text variant="hero" style={{ fontSize: 24 }}>
               {workoutDay.name}
             </Text>
-            {workoutDay.focus && (
-              <Text variant="body" color="textMuted">
-                {workoutDay.focus}
-              </Text>
-            )}
           </View>
 
           {/* Divider */}
           <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
         </View>
 
-        {/* Exercise List */}
+        {/* Content */}
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 20, paddingTop: 0, gap: 12 }}
+          contentContainerStyle={{ padding: 20, paddingTop: 0, gap: 20 }}
           showsVerticalScrollIndicator={false}
         >
-          {groupedExercises.map((group) =>
-            group.type === 'superset' ? (
-              <SupersetBlock key={group.id} exercises={group.exercises} supersetId={group.id} />
-            ) : (
-              <ExerciseCard key={group.id} exercise={group.exercises[0]} />
-            )
-          )}
+          {/* Objective Card */}
+          {workoutDay.objective && <ObjectiveCard objective={workoutDay.objective} />}
+
+          {/* Workout Blocks */}
+          {workoutDay.blocks?.map((block, index) => (
+            <WorkoutBlock
+              key={block.id}
+              block={block}
+              blockLabel={blockLabels[index] || `${index + 1}`}
+              onExercisePress={handleExercisePress}
+            />
+          ))}
         </ScrollView>
 
         {/* Start Button */}
@@ -356,6 +205,7 @@ export default function WorkoutDetailScreen() {
           }}
         >
           <Pressable
+            testID="start-workout-button"
             style={({ pressed }) => ({
               backgroundColor: pressed ? colors.primaryDark : colors.primary,
               borderRadius: 12,
@@ -368,7 +218,7 @@ export default function WorkoutDetailScreen() {
               INICIAR ENTRENAMIENTO
             </Text>
             <Text variant="bodySm" style={{ color: colors.background + 'CC' }}>
-              {exerciseCount} ejercicios
+              {totalExercises} ejercicios • {workoutDay.blocks?.length || 0} bloques
             </Text>
           </Pressable>
         </View>

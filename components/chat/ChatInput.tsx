@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -93,7 +93,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderTopWidth: 1,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
     gap: 8,
   },
   iconButton: {

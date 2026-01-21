@@ -1,233 +1,70 @@
-import React, { useState, useMemo } from 'react';
-import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Text, Button, Card } from '@/components/ui';
+import { Text, Button } from '@/components/ui';
 import { QuestionButton } from '@/components/chat';
+import { DaySelector, ObjectiveCard, WorkoutBlock } from '@/components/workout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
-import type { WorkoutDay } from '@/__mocks__/types/database.types';
 
-function isRestDay(day: WorkoutDay): boolean {
+// Get block label (A, B, C, etc.)
+function getBlockLabel(index: number): string {
+  return String.fromCharCode(65 + index); // 65 is ASCII for 'A'
+}
+
+// Check if the day is a rest day (empty blocks or specific keywords)
+function isRestDay(dayName: string, blocksCount: number): boolean {
+  if (blocksCount === 0) return true;
   const restKeywords = ['descanso', 'rest', 'recuperación', 'recovery'];
-  const dayNameLower = day.name.toLowerCase();
+  const dayNameLower = dayName.toLowerCase();
   return restKeywords.some((keyword) => dayNameLower.includes(keyword));
 }
 
-function isTodayWorkout(dayNumber: number, currentWeek: number, selectedWeek: number): boolean {
-  // Only mark as today if we're viewing the current week and it's the current day
-  if (currentWeek !== selectedWeek) return false;
-
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  // Convert to 1-indexed where 1 = Monday
-  const todayDayNumber = dayOfWeek === 0 ? 7 : dayOfWeek;
-
-  return dayNumber === todayDayNumber;
-}
-
-interface WeekSelectorProps {
-  weeks: number[];
-  selectedWeek: number;
-  onSelectWeek: (week: number) => void;
-  currentWeek: number;
-}
-
-function WeekSelector({ weeks, selectedWeek, onSelectWeek, currentWeek }: WeekSelectorProps) {
-  const { colors } = useTheme();
-
-  return (
-    <View testID="week-selector" style={{ marginBottom: 16 }}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingHorizontal: 4 }}
-      >
-        {weeks.map((week) => {
-          const isSelected = week === selectedWeek;
-          const isCurrent = week === currentWeek;
-
-          return (
-            <Pressable
-              key={week}
-              testID={`week-chip-${week}`}
-              accessibilityState={{ selected: isSelected }}
-              onPress={() => onSelectWeek(week)}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                borderRadius: 20,
-                backgroundColor: isSelected ? colors.primary : colors.surfaceHighlight,
-                borderWidth: isCurrent && !isSelected ? 1 : 0,
-                borderColor: colors.primary,
-              }}
-            >
-              <Text
-                variant="bodySm"
-                style={{
-                  color: isSelected ? colors.background : colors.text,
-                  fontWeight: isSelected ? '600' : '400',
-                }}
-              >
-                Semana {week}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-}
-
-interface WorkoutCardProps {
-  day: WorkoutDay;
-  dayNumber: number;
-  workoutId: string;
-  weekNumber: number;
-  isToday: boolean;
-  onPress: () => void;
-}
-
-function WorkoutCard({ day, dayNumber, workoutId, weekNumber, isToday, onPress }: WorkoutCardProps) {
-  const { colors } = useTheme();
-  const isRest = isRestDay(day);
-  const exerciseCount = day.exercises?.length || 0;
-
-  return (
-    <Pressable
-      testID={`workout-card-${dayNumber}`}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        opacity: pressed ? 0.8 : 1,
-      })}
-    >
-      <Card variant="glass">
-        <View style={{ padding: 16, gap: 12 }}>
-          {/* Header Row */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text variant="caption" color="textMuted" uppercase>
-                DÍA {dayNumber}
-              </Text>
-              {isToday && (
-                <View
-                  testID="today-badge"
-                  style={{
-                    backgroundColor: colors.primary,
-                    paddingHorizontal: 8,
-                    paddingVertical: 2,
-                    borderRadius: 4,
-                  }}
-                >
-                  <Text variant="caption" style={{ color: colors.background, fontWeight: '700' }}>
-                    HOY
-                  </Text>
-                </View>
-              )}
-            </View>
-            {isRest && (
-              <View
-                testID={`rest-day-indicator-${dayNumber}`}
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
-                  backgroundColor: colors.success + '30',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Text variant="caption" style={{ color: colors.success }}>
-                  ✓
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Title */}
-          <Text variant="title" style={{ fontSize: 16 }}>
-            {day.name}
-          </Text>
-
-          {/* Focus/Description */}
-          {day.focus && (
-            <Text variant="body" color="textMuted" numberOfLines={2}>
-              {day.focus}
-            </Text>
-          )}
-
-          {/* Footer */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              {!isRest && exerciseCount > 0 && (
-                <Text variant="bodySm" color="textMuted">
-                  {exerciseCount} ejercicios
-                </Text>
-              )}
-              {isRest && (
-                <Text variant="bodySm" color="success">
-                  Día de recuperación
-                </Text>
-              )}
-              {!isRest && (
-                <QuestionButton
-                  referenceType="workout"
-                  referenceId={`${workoutId}-week${weekNumber}-day${dayNumber}`}
-                  referenceTag={`[Semana ${weekNumber} - Día ${dayNumber}: ${day.name}]`}
-                  compact
-                />
-              )}
-            </View>
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: isToday ? colors.primary : colors.surfaceHighlight,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                variant="body"
-                style={{ color: isToday ? colors.background : colors.textMuted }}
-              >
-                →
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Card>
-    </Pressable>
-  );
-}
-
-export default function WorkoutListScreen() {
+export default function WorkoutScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const { activeWorkout, isLoading, error, currentWeek, getWorkoutsForWeek, refreshWorkouts } = useWorkout();
+  const {
+    workoutPlan,
+    isLoading,
+    error,
+    selectedDay,
+    setSelectedDay,
+    getCurrentDay,
+    getTotalDays,
+    getWeekForDay,
+    refreshWorkouts,
+  } = useWorkout();
 
-  const [selectedWeek, setSelectedWeek] = useState(currentWeek);
+  // Get current day data
+  const currentDay = useMemo(() => getCurrentDay(), [getCurrentDay]);
+  const currentWeek = useMemo(() => getWeekForDay(selectedDay), [getWeekForDay, selectedDay]);
+  const totalDays = useMemo(() => getTotalDays(), [getTotalDays]);
 
-  // Get available weeks from active workout
-  const availableWeeks = useMemo(() => {
-    if (!activeWorkout?.structure?.weeks) return [];
-    return activeWorkout.structure.weeks.map((w) => w.week_number);
-  }, [activeWorkout]);
+  // Calculate today's day number based on start date
+  const todayDayNumber = useMemo(() => {
+    if (!workoutPlan?.start_date) return undefined;
 
-  // Get workout days for selected week
-  const weekWorkouts = useMemo(() => {
-    return getWorkoutsForWeek(selectedWeek);
-  }, [getWorkoutsForWeek, selectedWeek]);
+    const startDate = new Date(workoutPlan.start_date);
+    const today = new Date();
+    const diffTime = today.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  const handleWorkoutPress = (dayNumber: number) => {
-    if (!activeWorkout) return;
-    router.push({
-      pathname: '/(tabs)/workout/[id]',
-      params: { id: activeWorkout.id, week: selectedWeek, day: dayNumber },
-    });
+    // Day number is 1-indexed
+    const dayNumber = diffDays + 1;
+
+    // Only return if within valid range
+    if (dayNumber >= 1 && dayNumber <= totalDays) {
+      return dayNumber;
+    }
+    return undefined;
+  }, [workoutPlan, totalDays]);
+
+  const handleExercisePress = (exerciseId: string, exerciseName: string) => {
+    router.push(`/exercise/${exerciseId}?name=${encodeURIComponent(exerciseName)}`);
   };
 
+  // Loading state
   if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -241,6 +78,7 @@ export default function WorkoutListScreen() {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -262,7 +100,8 @@ export default function WorkoutListScreen() {
     );
   }
 
-  if (!activeWorkout) {
+  // Empty state - no workout plan
+  if (!workoutPlan) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
@@ -286,8 +125,8 @@ export default function WorkoutListScreen() {
                 alignItems: 'center',
               }}
             >
-              <Text variant="hero" color="textMuted">
-                🏋️
+              <Text variant="hero" color="textMuted" style={{ fontSize: 32 }}>
+                *
               </Text>
             </View>
             <Text variant="title" style={{ textAlign: 'center' }}>
@@ -302,51 +141,130 @@ export default function WorkoutListScreen() {
     );
   }
 
+  // Main content with workout plan
+  const isRest = currentDay ? isRestDay(currentDay.name, currentDay.blocks.length) : false;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
-      <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
-        {/* Header */}
-        <View style={{ gap: 4, marginBottom: 24 }}>
-          <Text variant="hero" style={{ fontSize: 32 }}>
-            Entrenamiento
-          </Text>
-          <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
-        </View>
-
-        {/* Week Selector */}
-        <WeekSelector
-          weeks={availableWeeks}
-          selectedWeek={selectedWeek}
-          onSelectWeek={setSelectedWeek}
-          currentWeek={currentWeek}
-        />
-
-        {/* Week Info */}
-        <View style={{ marginBottom: 16 }}>
-          <Text variant="bodySm" color="textMuted">
-            {activeWorkout.structure.weeks.find((w) => w.week_number === selectedWeek)?.name ||
-              `Semana ${selectedWeek}`}
-          </Text>
-        </View>
-
-        {/* Workout Cards */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ gap: 12, paddingBottom: 100 }}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {/* Hero Header with Plan Title and Goal */}
+        <View
+          style={{
+            minHeight: 140,
+            backgroundColor: colors.surfaceHighlight,
+            justifyContent: 'flex-end',
+            padding: 20,
+            marginBottom: 20,
+          }}
         >
-          {weekWorkouts.map((day) => (
-            <WorkoutCard
-              key={day.day_number}
-              day={day}
-              dayNumber={day.day_number}
-              workoutId={activeWorkout.id}
-              weekNumber={selectedWeek}
-              isToday={isTodayWorkout(day.day_number, currentWeek, selectedWeek)}
-              onPress={() => handleWorkoutPress(day.day_number)}
+          {/* Header buttons */}
+          <View
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              flexDirection: 'row',
+              gap: 8,
+            }}
+          >
+            <QuestionButton
+              referenceType="workout"
+              referenceId={`${workoutPlan.id}-day${selectedDay}`}
+              referenceTag={`[${workoutPlan.title} - Día ${selectedDay}]`}
             />
-          ))}
-        </ScrollView>
-      </View>
+          </View>
+
+          {/* Plan Title */}
+          <Text
+            variant="hero"
+            style={{
+              fontSize: 24,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+            }}
+          >
+            {workoutPlan.title}
+          </Text>
+
+          {/* Plan Goal */}
+          {workoutPlan.goal && (
+            <Text
+              variant="body"
+              color="textMuted"
+              style={{ marginTop: 8 }}
+            >
+              {workoutPlan.goal}
+            </Text>
+          )}
+        </View>
+
+        {/* Main Content */}
+        <View style={{ paddingHorizontal: 20 }}>
+          {/* Day Selector */}
+          <DaySelector
+            totalDays={totalDays}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+            todayDay={todayDayNumber}
+          />
+
+          {/* Day content */}
+          {currentDay && (
+            <>
+              {/* Objective Card */}
+              {currentDay.objective && <ObjectiveCard objective={currentDay.objective} />}
+
+              {/* Rest Day State */}
+              {isRest ? (
+                <View
+                  testID="rest-day-content"
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: 12,
+                    padding: 24,
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 32,
+                      backgroundColor: colors.success + '20',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 24, color: colors.success }}>✓</Text>
+                  </View>
+                  <Text variant="title" style={{ textAlign: 'center' }}>
+                    Dia de Descanso
+                  </Text>
+                  <Text variant="body" color="textMuted" style={{ textAlign: 'center' }}>
+                    Aprovecha para recuperarte. Hidratacion y buen descanso.
+                  </Text>
+                </View>
+              ) : (
+                /* Workout Blocks */
+                <View testID="workout-blocks">
+                  {currentDay.blocks.map((block, index) => (
+                    <WorkoutBlock
+                      key={block.id}
+                      block={block}
+                      blockLabel={getBlockLabel(index)}
+                      onExercisePress={handleExercisePress}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -25,14 +25,31 @@ export const mockSupabaseFrom = jest.fn(() => ({
     })),
     order: jest.fn(),
   })),
-  insert: jest.fn(),
-  update: jest.fn(),
+  insert: jest.fn(() => ({
+    select: jest.fn(() => ({
+      single: jest.fn(),
+    })),
+  })),
+  update: jest.fn(() => ({
+    eq: jest.fn(() => ({
+      is: jest.fn(),
+    })),
+  })),
   delete: jest.fn(),
 }));
+
+export const mockSupabaseChannel = {
+  on: jest.fn().mockReturnThis(),
+  subscribe: jest.fn().mockReturnValue({ unsubscribe: jest.fn() }),
+  unsubscribe: jest.fn(),
+};
 
 export const mockSupabase = {
   auth: mockSupabaseAuth,
   from: mockSupabaseFrom,
+  channel: jest.fn(() => mockSupabaseChannel),
+  removeChannel: jest.fn(),
+  rpc: jest.fn(),
 };
 
 // Helper to reset all mocks
@@ -44,6 +61,9 @@ export const resetSupabaseMocks = () => {
   mockSupabaseAuth.onAuthStateChange.mockReset();
   mockSupabaseAuth.refreshSession.mockReset();
   mockSupabaseFrom.mockClear();
+  mockSupabase.channel.mockClear();
+  mockSupabase.removeChannel.mockClear();
+  mockSupabase.rpc.mockReset();
 };
 
 // Helper to mock successful sign in

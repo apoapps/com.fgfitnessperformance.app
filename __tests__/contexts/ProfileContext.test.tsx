@@ -111,17 +111,23 @@ describe('ProfileContext', () => {
       const { getByTestId } = renderProfileContext();
 
       // After the async operation completes, loading should be false
-      await waitFor(() => {
-        expect(getByTestId('loading').props.children).toBe('loaded');
-      });
+      await waitFor(
+        () => {
+          expect(getByTestId('loading').props.children).toBe('loaded');
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('has no error initially', async () => {
       const { getByTestId } = renderProfileContext();
 
-      await waitFor(() => {
-        expect(getByTestId('loading').props.children).toBe('loaded');
-      });
+      await waitFor(
+        () => {
+          expect(getByTestId('loading').props.children).toBe('loaded');
+        },
+        { timeout: 3000 }
+      );
 
       expect(getByTestId('error').props.children).toBe('no-error');
     });

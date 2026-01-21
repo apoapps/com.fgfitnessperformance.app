@@ -1,10 +1,27 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  ReactNode,
+} from 'react';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '@/utils/supabase';
+import { useAuth } from './AuthContext';
 import {
   ChatMessage,
   ChatThread,
   ChatReferenceType,
-} from '../__mocks__/types/database.types';
-import { mockChatThread, mockChatMessages } from '../__mocks__/data/mock-chat';
+  ChatMessageRow,
+  ChatThreadRow,
+  chatMessageFromRow,
+  chatThreadFromRow,
+} from '@/types/chat';
+
+// Re-export types for consumers
+export type { ChatMessage, ChatThread, ChatReferenceType };
 
 interface ChatContextType {
   messages: ChatMessage[];
@@ -29,30 +46,156 @@ interface ChatProviderProps {
 }
 
 export function ChatProvider({ children }: ChatProviderProps) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [thread, setThread] = useState<ChatThread | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
+  // Get or create thread for the current user
+  const getOrCreateThread = useCallback(async (): Promise<string | null> => {
+    if (!user?.id) return null;
+
+    try {
+      // First try to get existing thread
+      const { data: existingThread, error: fetchError } = await supabase
+        .from('chat_threads')
+        .select('*')
+        .eq('client_id', user.id)
+        .single();
+
+      if (existingThread && !fetchError) {
+        const threadData = chatThreadFromRow(existingThread as ChatThreadRow);
+        setThread(threadData);
+        setUnreadCount(threadData.unread_count_client);
+        return threadData.id;
+      }
+
+      // If not exists, create new thread
+      const { data: newThread, error: insertError } = await supabase
+        .from('chat_threads')
+        .insert({ client_id: user.id })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating thread:', insertError);
+        setError('No se pudo crear el chat');
+        return null;
+      }
+
+      const threadData = chatThreadFromRow(newThread as ChatThreadRow);
+      setThread(threadData);
+      setUnreadCount(0);
+      return threadData.id;
+    } catch (err) {
+      console.error('Error in getOrCreateThread:', err);
+      setError('Error al inicializar el chat');
+      return null;
+    }
+  }, [user?.id]);
+
+  // Load messages from Supabase
   const loadMessages = useCallback(async () => {
+    if (!user?.id) return;
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Simulate async loading with mock data
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      const threadId = await getOrCreateThread();
+      if (!threadId) {
+        setIsLoading(false);
+        return;
+      }
 
-      setThread(mockChatThread);
-      setMessages(mockChatMessages);
-      setUnreadCount(mockChatThread.unread_count);
+      const { data, error: fetchError } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('thread_id', threadId)
+        .order('created_at', { ascending: true });
+
+      if (fetchError) {
+        console.error('Error fetching messages:', fetchError);
+        setError('No se pudieron cargar los mensajes');
+        return;
+      }
+
+      const loadedMessages = (data as ChatMessageRow[]).map(chatMessageFromRow);
+      setMessages(loadedMessages);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load messages');
+      console.error('Error loading messages:', err);
+      setError(err instanceof Error ? err.message : 'Error al cargar mensajes');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id, getOrCreateThread]);
 
+  // Subscribe to realtime updates
+  useEffect(() => {
+    if (!thread?.id) return;
+
+    // Clean up existing subscription
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    // Subscribe to new messages in this thread
+    const channel = supabase
+      .channel(`chat:${thread.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `thread_id=eq.${thread.id}`,
+        },
+        (payload) => {
+          const newMessage = chatMessageFromRow(payload.new as ChatMessageRow);
+          setMessages((prev) => {
+            // Avoid duplicates (in case we added it optimistically)
+            if (prev.some((m) => m.id === newMessage.id)) {
+              return prev;
+            }
+            return [...prev, newMessage];
+          });
+
+          // If message is from coach, increment unread count
+          if (newMessage.sender_type === 'coach') {
+            setUnreadCount((prev) => prev + 1);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_threads',
+          filter: `id=eq.${thread.id}`,
+        },
+        (payload) => {
+          const updatedThread = chatThreadFromRow(payload.new as ChatThreadRow);
+          setThread(updatedThread);
+          setUnreadCount(updatedThread.unread_count_client);
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [thread?.id]);
+
+  // Send a message
   const sendMessage = useCallback(
     async (
       content: string,
@@ -60,48 +203,92 @@ export function ChatProvider({ children }: ChatProviderProps) {
       referenceId?: string,
       referenceTag?: string
     ) => {
-      // Don't send empty or whitespace-only messages
-      if (!content.trim()) {
+      if (!content.trim() || !user?.id || !thread?.id) {
         return;
       }
 
-      const newMessage: ChatMessage = {
-        id: `msg-${Date.now()}`,
-        thread_id: thread?.id || 'thread-new',
-        sender: 'user',
+      const messageData = {
+        thread_id: thread.id,
+        sender_id: user.id,
+        sender_type: 'client' as const,
         content: content.trim(),
+        reference_type: referenceType || null,
+        reference_id: referenceId || null,
+        reference_tag: referenceTag || null,
+      };
+
+      // Optimistic update
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMessage: ChatMessage = {
+        id: tempId,
+        ...messageData,
         reference_type: referenceType,
         reference_id: referenceId,
         reference_tag: referenceTag,
         created_at: new Date().toISOString(),
       };
+      setMessages((prev) => [...prev, optimisticMessage]);
 
-      setMessages((prev) => [...prev, newMessage]);
+      try {
+        const { data, error: insertError } = await supabase
+          .from('chat_messages')
+          .insert(messageData)
+          .select()
+          .single();
 
-      // In a real implementation, this would send to Supabase
-      // await supabase.from('chat_messages').insert(newMessage);
+        if (insertError) {
+          console.error('Error sending message:', insertError);
+          // Remove optimistic message on error
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          setError('No se pudo enviar el mensaje');
+          return;
+        }
+
+        // Replace optimistic message with real one
+        const realMessage = chatMessageFromRow(data as ChatMessageRow);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? realMessage : m))
+        );
+      } catch (err) {
+        console.error('Error sending message:', err);
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setError('Error al enviar el mensaje');
+      }
     },
-    [thread]
+    [user?.id, thread?.id]
   );
 
+  // Mark messages as read
   const markAsRead = useCallback(async () => {
-    setUnreadCount(0);
+    if (!thread?.id || !user?.id || unreadCount === 0) return;
 
-    // In a real implementation, this would update Supabase
-    // Update messages with read_at timestamp
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.sender === 'coach' && !msg.read_at
-          ? { ...msg, read_at: new Date().toISOString() }
-          : msg
-      )
-    );
+    try {
+      // Update unread messages (from coach) to read
+      await supabase
+        .from('chat_messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('thread_id', thread.id)
+        .eq('sender_type', 'coach')
+        .is('read_at', null);
 
-    // Update thread unread count
-    if (thread) {
-      setThread({ ...thread, unread_count: 0 });
+      // Reset client unread count
+      await supabase
+        .from('chat_threads')
+        .update({ unread_count_client: 0 })
+        .eq('id', thread.id);
+
+      setUnreadCount(0);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.sender_type === 'coach' && !msg.read_at
+            ? { ...msg, read_at: new Date().toISOString() }
+            : msg
+        )
+      );
+    } catch (err) {
+      console.error('Error marking as read:', err);
     }
-  }, [thread]);
+  }, [thread?.id, user?.id, unreadCount]);
 
   const value: ChatContextType = {
     messages,

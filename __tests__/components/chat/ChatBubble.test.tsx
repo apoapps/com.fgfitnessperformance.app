@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react-native';
 import { ChatBubble } from '@/components/chat/ChatBubble';
-import { ChatMessage } from '../../../__mocks__/types/database.types';
+import { ChatMessage } from '@/types/chat';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -11,7 +11,8 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 const mockUserMessage: ChatMessage = {
   id: 'msg-1',
   thread_id: 'thread-123',
-  sender: 'user',
+  sender_id: 'user-123',
+  sender_type: 'client',
   content: 'This is a user message',
   created_at: '2026-01-20T10:00:00Z',
 };
@@ -19,7 +20,8 @@ const mockUserMessage: ChatMessage = {
 const mockCoachMessage: ChatMessage = {
   id: 'msg-2',
   thread_id: 'thread-123',
-  sender: 'coach',
+  sender_id: 'coach-456',
+  sender_type: 'coach',
   content: 'This is a coach response',
   created_at: '2026-01-20T10:05:00Z',
   read_at: '2026-01-20T10:06:00Z',
@@ -28,7 +30,8 @@ const mockCoachMessage: ChatMessage = {
 const mockMessageWithReference: ChatMessage = {
   id: 'msg-3',
   thread_id: 'thread-123',
-  sender: 'user',
+  sender_id: 'user-123',
+  sender_type: 'client',
   content: 'Question about this exercise',
   reference_tag: '[Día 3 - Press de Banca]',
   reference_type: 'exercise',
@@ -72,11 +75,11 @@ describe('ChatBubble', () => {
   });
 
   describe('Styling', () => {
-    it('has correct testID for user message', async () => {
+    it('has correct testID for client message', async () => {
       render(<ChatBubble message={mockUserMessage} />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByTestId('chat-bubble-user')).toBeTruthy();
+        expect(screen.getByTestId('chat-bubble-client')).toBeTruthy();
       });
     });
 
@@ -107,7 +110,7 @@ describe('ChatBubble', () => {
       render(<ChatBubble message={mockUserMessage} />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByTestId('chat-bubble-user')).toBeTruthy();
+        expect(screen.getByTestId('chat-bubble-client')).toBeTruthy();
       });
 
       expect(screen.queryByTestId('chat-image')).toBeNull();

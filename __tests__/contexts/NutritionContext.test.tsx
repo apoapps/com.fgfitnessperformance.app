@@ -3,13 +3,14 @@ import { render, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { NutritionProvider, useNutrition } from '@/contexts/NutritionContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { mockAssignedNutrition, mockMacros } from '../../__mocks__/data/mock-nutrition';
+import { mockNutritionPlan, mockMacros, mockNutritionDocuments } from '../../__mocks__/data/mock-nutrition';
 
 // Mock Supabase
 const mockFrom = jest.fn();
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockOrder = jest.fn();
+const mockLimit = jest.fn();
 
 jest.mock('@/utils/supabase', () => ({
   supabase: {
@@ -40,8 +41,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Setup mock chain
+// Setup mock chain for nutrition_plans table
 const setupMockChain = () => {
+  mockLimit.mockResolvedValue({ data: [mockNutritionPlan], error: null });
+  mockOrder.mockReturnValue({ limit: mockLimit });
   mockFrom.mockReturnValue({
     select: mockSelect.mockReturnValue({
       eq: mockEq.mockReturnValue({
@@ -99,7 +102,6 @@ describe('NutritionContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupMockChain();
-    mockOrder.mockResolvedValue({ data: [mockAssignedNutrition], error: null });
   });
 
   describe('initial state and loading', () => {
@@ -130,9 +132,9 @@ describe('NutritionContext', () => {
         expect(getByTestId('loading').props.children).toBe('loaded');
       });
 
-      expect(mockFrom).toHaveBeenCalledWith('assigned_nutrition');
+      expect(mockFrom).toHaveBeenCalledWith('nutrition_plans');
       expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockEq).toHaveBeenCalledWith('client_id', mockUser.id);
+      expect(mockEq).toHaveBeenCalledWith('user_id', mockUser.id);
     });
 
     it('identifies the active nutrition plan', async () => {
@@ -144,7 +146,7 @@ describe('NutritionContext', () => {
     });
 
     it('sets error when fetch fails', async () => {
-      mockOrder.mockResolvedValue({ data: null, error: { message: 'Network error' } });
+      mockLimit.mockResolvedValue({ data: null, error: { message: 'Network error' } });
 
       const { getByTestId } = renderNutritionContext();
 
@@ -191,12 +193,12 @@ describe('NutritionContext', () => {
   });
 
   describe('meals extraction', () => {
-    it('extracts meals array from nutrition plan', async () => {
+    it('returns empty meals array (meals not stored in nutrition_plans table)', async () => {
       const { getByTestId } = renderNutritionContext();
 
       await waitFor(() => {
-        // mockAssignedNutrition has 5 meals
-        expect(getByTestId('mealsCount').props.children).toBe(5);
+        // nutrition_plans table doesn't have meals column yet
+        expect(getByTestId('mealsCount').props.children).toBe(0);
       });
     });
   });
@@ -241,7 +243,7 @@ describe('NutritionContext', () => {
 
   describe('empty state', () => {
     it('handles no nutrition plan gracefully', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
       const { getByTestId } = renderNutritionContext();
 

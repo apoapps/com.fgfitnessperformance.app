@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useAuth } from './AuthContext';
-import type { AssignedNutrition, NutritionMacros, NutritionNutritionMeal, NutritionDocument } from '@/__mocks__/types/database.types';
+import type { NutritionPlan, NutritionMacros, NutritionMeal, NutritionDocument } from '@/types/nutrition';
 
 interface MacroPercentages {
   protein: number;
@@ -14,7 +14,7 @@ interface MacroPercentages {
 }
 
 interface NutritionContextType {
-  activePlan: AssignedNutrition | null;
+  activePlan: NutritionPlan | null;
   isLoading: boolean;
   error: string | null;
   macros: NutritionMacros | null;
@@ -34,7 +34,7 @@ interface NutritionProviderProps {
 
 export function NutritionProvider({ children }: NutritionProviderProps) {
   const { user } = useAuth();
-  const [activePlan, setActivePlan] = useState<AssignedNutrition | null>(null);
+  const [activePlan, setActivePlan] = useState<NutritionPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,20 +49,23 @@ export function NutritionProvider({ children }: NutritionProviderProps) {
     setError(null);
 
     try {
+      // Query nutrition_plans table with user_id and is_active
+      // Order by created_at DESC and limit to 1 to get the most recent active plan
       const { data, error: fetchError } = await supabase
-        .from('assigned_nutrition')
+        .from('nutrition_plans')
         .select('*')
-        .eq('client_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
       if (fetchError) {
         setError(fetchError.message);
         setActivePlan(null);
+      } else if (data && data.length > 0) {
+        setActivePlan(data[0] as NutritionPlan);
       } else {
-        // Get the first active plan
-        const plans = (data as AssignedNutrition[]) || [];
-        setActivePlan(plans[0] || null);
+        setActivePlan(null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch nutrition plan');
@@ -80,24 +83,25 @@ export function NutritionProvider({ children }: NutritionProviderProps) {
     await fetchNutrition();
   }, [fetchNutrition]);
 
-  // Extract macros from active plan
+  // Extract macros from active plan (direct column, not inside structure)
   const macros = useMemo<NutritionMacros | null>(() => {
-    return activePlan?.structure?.macros || null;
+    return activePlan?.macros || null;
   }, [activePlan]);
 
-  // Extract meals from active plan
+  // Meals - currently not stored in nutrition_plans table
+  // TODO: Add meals table or column when needed
   const meals = useMemo<NutritionMeal[]>(() => {
-    return activePlan?.structure?.meals || [];
-  }, [activePlan]);
+    return [];
+  }, []);
 
   // Extract documents from active plan
   const documents = useMemo<NutritionDocument[]>(() => {
     return activePlan?.documents || [];
   }, [activePlan]);
 
-  // Extract water target
+  // Extract water target (direct column, not inside structure)
   const waterTarget = useMemo<number>(() => {
-    return activePlan?.structure?.water_target_liters || 2.5;
+    return activePlan?.water_target_liters || 2.5;
   }, [activePlan]);
 
   // Calculate macro percentages

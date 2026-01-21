@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient, processLock } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import 'react-native-url-polyfill/auto';
 
@@ -32,12 +32,45 @@ const getStorage = () => {
   return AsyncStorage;
 };
 
+// Web Lock API for browser environments to prevent concurrent auth operations
+const webLock = Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.locks
+  ? async <T>(name: string, acquireTimeout: number, fn: () => Promise<T>): Promise<T> => {
+      // If acquireTimeout is 0 or negative, execute without lock to avoid immediate abort
+      if (acquireTimeout <= 0) {
+        return fn();
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), acquireTimeout);
+
+      try {
+        return await navigator.locks.request(
+          name,
+          { signal: controller.signal },
+          async () => fn()
+        );
+      } catch (error) {
+        // If lock was aborted due to timeout, still try to execute the function
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.warn(`Lock "${name}" acquisition timed out after ${acquireTimeout}ms, proceeding without lock`);
+          return fn();
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+  : undefined;
+
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     storage: getStorage(),
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
-    lock: Platform.OS !== 'web' ? processLock : undefined,
+    // Use Web Lock API on web, no lock on native (AsyncStorage handles it)
+    lock: webLock,
+    // Increase timeout to prevent warnings during slow network conditions
+    lockAcquireTimeout: 5000,
   },
 });

@@ -3,13 +3,14 @@ import { render, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { WorkoutProvider, useWorkout } from '@/contexts/WorkoutContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { mockAssignedWorkout } from '../../__mocks__/data/mock-workout';
+import { mockWorkoutPlan } from '../../__mocks__/data/mock-workout';
 
 // Mock Supabase
 const mockFrom = jest.fn();
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockOrder = jest.fn();
+const mockLimit = jest.fn();
 
 jest.mock('@/utils/supabase', () => ({
   supabase: {
@@ -40,8 +41,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Setup mock chain
+// Setup mock chain for workout_plans table
 const setupMockChain = () => {
+  mockLimit.mockResolvedValue({ data: [mockWorkoutPlan], error: null });
+  mockOrder.mockReturnValue({ limit: mockLimit });
   mockFrom.mockReturnValue({
     select: mockSelect.mockReturnValue({
       eq: mockEq.mockReturnValue({
@@ -56,25 +59,33 @@ const setupMockChain = () => {
 // Test consumer component
 const TestConsumer = () => {
   const {
-    workouts,
-    activeWorkout,
+    workoutPlan,
     isLoading,
     error,
     currentWeek,
-    getWorkoutsForWeek,
+    selectedDay,
+    getTotalDays,
+    getDaysForCurrentWeek,
+    getCurrentDay,
   } = useWorkout();
 
-  const weekWorkouts = activeWorkout ? getWorkoutsForWeek(1) : [];
+  const totalDays = getTotalDays();
+  const currentDayData = getCurrentDay();
+  const weekDays = getDaysForCurrentWeek();
 
   return (
     <>
       <Text testID="loading">{isLoading ? 'loading' : 'loaded'}</Text>
       <Text testID="error">{error || 'no-error'}</Text>
-      <Text testID="workoutsCount">{workouts.length}</Text>
-      <Text testID="hasActiveWorkout">{activeWorkout ? 'yes' : 'no'}</Text>
+      <Text testID="hasWorkoutPlan">{workoutPlan ? 'yes' : 'no'}</Text>
       <Text testID="currentWeek">{currentWeek}</Text>
-      <Text testID="weekWorkoutsCount">{weekWorkouts.length}</Text>
-      <Text testID="activeWorkoutId">{activeWorkout?.id || 'no-id'}</Text>
+      <Text testID="selectedDay">{selectedDay}</Text>
+      <Text testID="totalDays">{totalDays}</Text>
+      <Text testID="weekDaysCount">{weekDays.length}</Text>
+      <Text testID="workoutPlanId">{workoutPlan?.id || 'no-id'}</Text>
+      <Text testID="workoutPlanName">{workoutPlan?.title || 'no-name'}</Text>
+      <Text testID="currentDayName">{currentDayData?.name || 'no-day'}</Text>
+      <Text testID="currentDayBlocksCount">{currentDayData?.blocks?.length || 0}</Text>
     </>
   );
 };
@@ -93,7 +104,6 @@ describe('WorkoutContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupMockChain();
-    mockOrder.mockResolvedValue({ data: [mockAssignedWorkout], error: null });
   });
 
   describe('initial state and loading', () => {
@@ -114,39 +124,51 @@ describe('WorkoutContext', () => {
 
       expect(getByTestId('error').props.children).toBe('no-error');
     });
-  });
 
-  describe('loading workouts', () => {
-    it('fetches workouts from Supabase when user is authenticated', async () => {
+    it('starts with selectedDay as 1', async () => {
       const { getByTestId } = renderWorkoutContext();
 
       await waitFor(() => {
         expect(getByTestId('loading').props.children).toBe('loaded');
       });
 
-      expect(mockFrom).toHaveBeenCalledWith('assigned_workouts');
+      expect(getByTestId('selectedDay').props.children).toBe(1);
+    });
+  });
+
+  describe('loading workouts', () => {
+    it('fetches workouts from workout_plans table', async () => {
+      const { getByTestId } = renderWorkoutContext();
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      expect(mockFrom).toHaveBeenCalledWith('workout_plans');
       expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(mockEq).toHaveBeenCalledWith('client_id', mockUser.id);
+      expect(mockEq).toHaveBeenCalledWith('user_id', mockUser.id);
     });
 
-    it('sets workouts after successful fetch', async () => {
+    it('sets workout plan after successful fetch', async () => {
       const { getByTestId } = renderWorkoutContext();
 
       await waitFor(() => {
-        expect(getByTestId('workoutsCount').props.children).toBe(1);
+        expect(getByTestId('hasWorkoutPlan').props.children).toBe('yes');
       });
     });
 
-    it('identifies the active workout', async () => {
+    it('loads correct workout plan data', async () => {
       const { getByTestId } = renderWorkoutContext();
 
       await waitFor(() => {
-        expect(getByTestId('hasActiveWorkout').props.children).toBe('yes');
+        expect(getByTestId('workoutPlanId').props.children).toBe('workout-plan-001');
       });
+
+      expect(getByTestId('workoutPlanName').props.children).toBe('PROGRAMA FUERZA EXPLOSIVA');
     });
 
     it('sets error when fetch fails', async () => {
-      mockOrder.mockResolvedValue({ data: null, error: { message: 'Network error' } });
+      mockLimit.mockResolvedValue({ data: null, error: { message: 'Network error' } });
 
       const { getByTestId } = renderWorkoutContext();
 
@@ -154,7 +176,69 @@ describe('WorkoutContext', () => {
         expect(getByTestId('error').props.children).toBe('Network error');
       });
 
-      expect(getByTestId('workoutsCount').props.children).toBe(0);
+      expect(getByTestId('hasWorkoutPlan').props.children).toBe('no');
+    });
+  });
+
+  describe('getTotalDays', () => {
+    it('returns correct total number of days', async () => {
+      const { getByTestId } = renderWorkoutContext();
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      // mockWorkoutPlan has 2 weeks x 7 days = 14 total days
+      expect(getByTestId('totalDays').props.children).toBe(14);
+    });
+
+    it('returns 0 when no workout plan', async () => {
+      mockLimit.mockResolvedValue({ data: [], error: null });
+
+      const { getByTestId } = renderWorkoutContext();
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      expect(getByTestId('totalDays').props.children).toBe(0);
+    });
+  });
+
+  describe('getCurrentDay', () => {
+    it('returns day 1 by default', async () => {
+      const { getByTestId } = renderWorkoutContext();
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      // First day is "Día 1"
+      expect(getByTestId('currentDayName').props.children).toBe('Día 1');
+    });
+
+    it('returns correct blocks count for day 1', async () => {
+      const { getByTestId } = renderWorkoutContext();
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      // Day 1 has 3 blocks (Calentamiento, Circuito Principal, Core)
+      expect(getByTestId('currentDayBlocksCount').props.children).toBe(3);
+    });
+  });
+
+  describe('getDaysForCurrentWeek', () => {
+    it('returns all days for current week', async () => {
+      const { getByTestId } = renderWorkoutContext();
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      // Week 1 has 7 days
+      expect(getByTestId('weekDaysCount').props.children).toBe(7);
     });
   });
 
@@ -166,12 +250,11 @@ describe('WorkoutContext', () => {
         expect(getByTestId('loading').props.children).toBe('loaded');
       });
 
-      // Current week should be calculated based on start date
       expect(getByTestId('currentWeek').props.children).toBeGreaterThanOrEqual(1);
     });
 
-    it('returns week 1 when no active workout', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+    it('returns week 1 when no workout plan', async () => {
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
       const { getByTestId } = renderWorkoutContext();
 
@@ -183,15 +266,20 @@ describe('WorkoutContext', () => {
     });
   });
 
-  describe('getWorkoutById', () => {
-    it('returns workout by id', async () => {
-      const TestGetById = () => {
-        const { getWorkoutById, isLoading } = useWorkout();
-        const workout = getWorkoutById('workout-uuid-001');
+  describe('setSelectedDay', () => {
+    it('updates selected day correctly', async () => {
+      const TestSetDay = () => {
+        const { selectedDay, setSelectedDay, isLoading, getCurrentDay } = useWorkout();
+        const currentDay = getCurrentDay();
+
         return (
           <>
             <Text testID="loading">{isLoading ? 'loading' : 'loaded'}</Text>
-            <Text testID="foundWorkout">{workout?.id || 'not-found'}</Text>
+            <Text testID="selectedDay">{selectedDay}</Text>
+            <Text testID="currentDayName">{currentDay?.name || 'no-day'}</Text>
+            <Text testID="setDay3" onPress={() => setSelectedDay(3)}>
+              Set Day 3
+            </Text>
           </>
         );
       };
@@ -199,7 +287,7 @@ describe('WorkoutContext', () => {
       const { getByTestId } = render(
         <ThemeProvider>
           <WorkoutProvider>
-            <TestGetById />
+            <TestSetDay />
           </WorkoutProvider>
         </ThemeProvider>
       );
@@ -208,51 +296,14 @@ describe('WorkoutContext', () => {
         expect(getByTestId('loading').props.children).toBe('loaded');
       });
 
-      expect(getByTestId('foundWorkout').props.children).toBe('workout-uuid-001');
-    });
-
-    it('returns not-found for non-existent workout', async () => {
-      const TestGetById = () => {
-        const { getWorkoutById, isLoading } = useWorkout();
-        const workout = getWorkoutById('non-existent-id');
-        return (
-          <>
-            <Text testID="loading">{isLoading ? 'loading' : 'loaded'}</Text>
-            <Text testID="foundWorkout">{workout?.id || 'not-found'}</Text>
-          </>
-        );
-      };
-
-      const { getByTestId } = render(
-        <ThemeProvider>
-          <WorkoutProvider>
-            <TestGetById />
-          </WorkoutProvider>
-        </ThemeProvider>
-      );
-
-      await waitFor(() => {
-        expect(getByTestId('loading').props.children).toBe('loaded');
-      });
-
-      expect(getByTestId('foundWorkout').props.children).toBe('not-found');
-    });
-  });
-
-  describe('getWorkoutsForWeek', () => {
-    it('returns workout days for a specific week', async () => {
-      const { getByTestId } = renderWorkoutContext();
-
-      await waitFor(() => {
-        // Week 1 has 3 days
-        expect(getByTestId('weekWorkoutsCount').props.children).toBe(3);
-      });
+      // Initial state
+      expect(getByTestId('selectedDay').props.children).toBe(1);
     });
   });
 
   describe('empty state', () => {
-    it('handles no workouts gracefully', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+    it('handles no workout plan gracefully', async () => {
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
       const { getByTestId } = renderWorkoutContext();
 
@@ -260,8 +311,55 @@ describe('WorkoutContext', () => {
         expect(getByTestId('loading').props.children).toBe('loaded');
       });
 
-      expect(getByTestId('workoutsCount').props.children).toBe(0);
-      expect(getByTestId('hasActiveWorkout').props.children).toBe('no');
+      expect(getByTestId('hasWorkoutPlan').props.children).toBe('no');
+      expect(getByTestId('totalDays').props.children).toBe(0);
+    });
+  });
+
+  describe('block types', () => {
+    it('workout plan contains circuit and straight blocks', async () => {
+      const TestBlockTypes = () => {
+        const { workoutPlan, isLoading } = useWorkout();
+
+        // Count block types
+        let circuitCount = 0;
+        let straightCount = 0;
+
+        if (workoutPlan) {
+          workoutPlan.structure.weeks.forEach((week) => {
+            week.days.forEach((day) => {
+              day.blocks.forEach((block) => {
+                if (block.type === 'circuit') circuitCount++;
+                if (block.type === 'straight') straightCount++;
+              });
+            });
+          });
+        }
+
+        return (
+          <>
+            <Text testID="loading">{isLoading ? 'loading' : 'loaded'}</Text>
+            <Text testID="circuitCount">{circuitCount}</Text>
+            <Text testID="straightCount">{straightCount}</Text>
+          </>
+        );
+      };
+
+      const { getByTestId } = render(
+        <ThemeProvider>
+          <WorkoutProvider>
+            <TestBlockTypes />
+          </WorkoutProvider>
+        </ThemeProvider>
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('loading').props.children).toBe('loaded');
+      });
+
+      // Verify we have both block types
+      expect(getByTestId('circuitCount').props.children).toBeGreaterThan(0);
+      expect(getByTestId('straightCount').props.children).toBeGreaterThan(0);
     });
   });
 });

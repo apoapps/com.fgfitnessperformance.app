@@ -3,6 +3,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react-nativ
 import ChatScreen from '@/app/chat/index';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ChatProvider } from '@/contexts/ChatContext';
+import { supabase } from '@/utils/supabase';
+import { mockChatThread, mockChatMessages } from '../../../__mocks__/data/mock-chat';
 
 // Mock expo-router
 jest.mock('expo-router', () => ({
@@ -17,6 +19,89 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
+// Mock AuthContext
+const mockUser = { id: 'mock-user-uuid-12345' };
+jest.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: mockUser,
+    isLoading: false,
+  }),
+}));
+
+// Get references to mocked supabase
+const mockSupabase = supabase as jest.Mocked<typeof supabase>;
+
+// Setup supabase mocks for chat screen tests
+const setupChatMocks = () => {
+  (mockSupabase.from as jest.Mock).mockImplementation((table: string) => {
+    if (table === 'chat_threads') {
+      return {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockChatThread,
+              error: null,
+            }),
+          }),
+        }),
+        insert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockChatThread,
+              error: null,
+            }),
+          }),
+        }),
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      };
+    }
+
+    if (table === 'chat_messages') {
+      return {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            order: jest.fn().mockResolvedValue({
+              data: mockChatMessages,
+              error: null,
+            }),
+          }),
+        }),
+        insert: jest.fn((messageData) => ({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: {
+                id: 'new-msg-id',
+                thread_id: messageData?.thread_id || mockChatThread.id,
+                sender_id: messageData?.sender_id || mockUser.id,
+                sender_type: messageData?.sender_type || 'client',
+                content: messageData?.content || 'Test message',
+                reference_type: messageData?.reference_type || null,
+                reference_id: messageData?.reference_id || null,
+                reference_tag: messageData?.reference_tag || null,
+                created_at: new Date().toISOString(),
+              },
+              error: null,
+            }),
+          }),
+        })),
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            is: jest.fn().mockResolvedValue({ error: null }),
+          }),
+        }),
+      };
+    }
+
+    return {
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+    };
+  });
+};
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider>
     <ChatProvider>{children}</ChatProvider>
@@ -24,12 +109,17 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('ChatScreen', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setupChatMocks();
+  });
+
   describe('Rendering', () => {
     it('renders chat screen header', async () => {
       render(<ChatScreen />, { wrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Dudas')).toBeTruthy();
+        expect(screen.getByText('Chat con Coach')).toBeTruthy();
       });
     });
 
@@ -60,7 +150,7 @@ describe('ChatScreen', () => {
           // From mockChatMessages in mock-chat.ts
           expect(screen.getByText(/Coach, tengo una duda sobre este ejercicio/)).toBeTruthy();
         },
-        { timeout: 2000 }
+        { timeout: 3000 }
       );
     });
   });

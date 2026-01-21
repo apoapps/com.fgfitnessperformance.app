@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Text } from '@/components/ui/Text';
-import { ChatMessage } from '../../__mocks__/types/database.types';
+import type { ChatMessage } from '@/types/chat';
 
 interface ChatBubbleProps {
   message: ChatMessage;
@@ -18,11 +18,11 @@ function formatTime(dateString: string): string {
 
 export function ChatBubble({ message }: ChatBubbleProps) {
   const { colors } = useTheme();
-  const isUser = message.sender === 'user';
+  const isUser = message.sender_type === 'client';
 
   return (
     <View
-      testID={`chat-bubble-${message.sender}`}
+      testID={`chat-bubble-${message.sender_type}`}
       style={[
         styles.container,
         isUser ? styles.userContainer : styles.coachContainer,

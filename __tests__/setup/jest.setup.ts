@@ -22,6 +22,12 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 // Mock Supabase
+const mockSupabaseChannel = {
+  on: jest.fn().mockReturnThis(),
+  subscribe: jest.fn().mockReturnValue({ unsubscribe: jest.fn() }),
+  unsubscribe: jest.fn(),
+};
+
 jest.mock('@/utils/supabase', () => ({
   supabase: {
     auth: {
@@ -36,10 +42,24 @@ jest.mock('@/utils/supabase', () => ({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
           single: jest.fn(),
-          order: jest.fn(),
+          order: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        })),
+        order: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+      insert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+      })),
+      update: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          is: jest.fn(() => Promise.resolve({ error: null })),
         })),
       })),
     })),
+    channel: jest.fn(() => mockSupabaseChannel),
+    removeChannel: jest.fn(),
+    rpc: jest.fn(() => Promise.resolve({ data: null, error: null })),
   },
 }));
 

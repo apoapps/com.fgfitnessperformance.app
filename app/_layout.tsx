@@ -24,6 +24,13 @@ function RootLayoutContent() {
             animation: 'slide_from_bottom',
           }}
         />
+        <Stack.Screen
+          name="exercise"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </>

@@ -5,7 +5,7 @@ import { Text, Button, Card } from '@/components/ui';
 import { QuestionButton } from '@/components/chat';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNutrition } from '@/contexts/NutritionContext';
-import type { NutritionMeal, NutritionDocument } from '@/__mocks__/types/database.types';
+import type { NutritionMeal, NutritionDocument } from '@/types/nutrition';
 
 interface MacroStatProps {
   label: string;

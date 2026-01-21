@@ -1,4 +1,4 @@
-import type { AssignedNutrition, NutritionStructure, NutritionMacros } from '../types/database.types';
+import type { AssignedNutrition, NutritionStructure, NutritionMacros, NutritionPlan } from '@/types/nutrition';
 
 export const mockMacros: NutritionMacros = {
   protein: 180,
@@ -120,6 +120,30 @@ export const mockAssignedNutritionEmpty: AssignedNutrition = {
   },
   documents: [],
   status: 'pending',
+};
+
+// New NutritionPlan mock (matches nutrition_plans table)
+export const mockNutritionPlan: NutritionPlan = {
+  id: 'nutrition-plan-001',
+  user_id: 'mock-user-uuid-12345',
+  title: 'Plan Volumen Limpio',
+  goal: 'Ganar masa muscular manteniendo grasa corporal',
+  macros: mockMacros,
+  documents: mockNutritionDocuments,
+  water_target_liters: 3.0,
+  hydration_notes: 'Beber agua cada hora durante el entrenamiento',
+  is_active: true,
+  created_at: '2026-01-18T00:00:00Z',
+  coach_notes: 'Plan para fase de volumen limpio',
+};
+
+export const mockNutritionPlanEmpty: NutritionPlan = {
+  ...mockNutritionPlan,
+  id: 'nutrition-plan-empty',
+  title: 'Plan Vacío',
+  macros: { protein: 0, carbs: 0, fat: 0, calories: 0 },
+  documents: [],
+  is_active: false,
 };
 
 // Helper to calculate macro percentages

@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { WorkoutProvider } from '@/contexts/WorkoutContext';
 import { ProfileProvider } from '@/contexts/ProfileContext';
 import { ChatProvider } from '@/contexts/ChatContext';
-import { mockAssignedWorkout } from '../../__mocks__/data/mock-workout';
+import { mockWorkoutPlan } from '../../__mocks__/data/mock-workout';
 import { mockProfile } from '../../__mocks__/data/mock-profile';
 
 // Mock expo-router
@@ -25,6 +25,7 @@ const mockFrom = jest.fn();
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockOrder = jest.fn();
+const mockLimit = jest.fn();
 const mockSingle = jest.fn();
 
 jest.mock('@/utils/supabase', () => ({
@@ -57,7 +58,7 @@ jest.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Setup mock chain
+// Setup mock chain for both profiles and workout_plans tables
 const setupMockChain = () => {
   mockFrom.mockImplementation((table: string) => {
     if (table === 'profiles') {
@@ -69,11 +70,14 @@ const setupMockChain = () => {
         }),
       };
     }
+    // workout_plans table chain
     return {
       select: mockSelect.mockReturnValue({
         eq: mockEq.mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            order: mockOrder,
+            order: mockOrder.mockReturnValue({
+              limit: mockLimit,
+            }),
           }),
         }),
       }),
@@ -99,7 +103,8 @@ describe('Dashboard Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupMockChain();
-    mockOrder.mockResolvedValue({ data: [mockAssignedWorkout], error: null });
+    // Use the new mockWorkoutPlan format
+    mockLimit.mockResolvedValue({ data: [mockWorkoutPlan], error: null });
     mockSingle.mockResolvedValue({ data: mockProfile, error: null });
   });
 
@@ -123,7 +128,7 @@ describe('Dashboard Screen', () => {
   });
 
   describe('next workout section', () => {
-    it('displays next workout card', async () => {
+    it('displays next workout card when workout exists', async () => {
       const { getByTestId } = renderDashboard();
 
       await waitFor(() => {
@@ -131,16 +136,22 @@ describe('Dashboard Screen', () => {
       });
     });
 
-    it('shows workout name from active workout', async () => {
-      const { queryByText } = renderDashboard();
+    it('shows workout day name from current day', async () => {
+      const { getAllByText } = renderDashboard();
 
       await waitFor(() => {
-        // Check for any workout name from mock data or rest day message
-        const hasFuerzaExp = queryByText(/FUERZA EXPLOSIVA/i);
-        const hasHipertrofia = queryByText(/HIPERTROFIA/i);
-        const hasDescanso = queryByText(/DESCANSO ACTIVO/i);
-        const hasRestDay = queryByText(/sin entrenamiento/i) || queryByText(/Día de descanso/i);
-        expect(hasFuerzaExp || hasHipertrofia || hasDescanso || hasRestDay).toBeTruthy();
+        // The current day (day 1) has name "Día 1" - may appear multiple times
+        const dayElements = getAllByText(/Día 1/i);
+        expect(dayElements.length).toBeGreaterThanOrEqual(1);
+      });
+    });
+
+    it('shows block count for the day', async () => {
+      const { getByText } = renderDashboard();
+
+      await waitFor(() => {
+        // Day 1 has 3 blocks
+        expect(getByText(/3 bloques/i)).toBeTruthy();
       });
     });
 
@@ -152,7 +163,7 @@ describe('Dashboard Screen', () => {
       });
     });
 
-    it('navigates to workout when card is pressed', async () => {
+    it('navigates to workout tab when card is pressed', async () => {
       const { getByTestId } = renderDashboard();
 
       await waitFor(() => {
@@ -161,18 +172,28 @@ describe('Dashboard Screen', () => {
 
       fireEvent.press(getByTestId('next-workout-card'));
 
-      expect(mockRouter.push).toHaveBeenCalled();
+      expect(mockRouter.push).toHaveBeenCalledWith('/(tabs)/workout');
     });
   });
 
   describe('empty states', () => {
     it('shows placeholder when no workout assigned', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
       const { getByText } = renderDashboard();
 
       await waitFor(() => {
         expect(getByText(/sin entrenamiento/i)).toBeTruthy();
+      });
+    });
+
+    it('shows contact coach message when no workout', async () => {
+      mockLimit.mockResolvedValue({ data: [], error: null });
+
+      const { getByText } = renderDashboard();
+
+      await waitFor(() => {
+        expect(getByText(/Contacta a tu coach/i)).toBeTruthy();
       });
     });
   });

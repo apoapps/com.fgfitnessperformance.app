@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, waitFor, fireEvent } from '@testing-library/react-native';
-import WorkoutListScreen from '@/app/(tabs)/workout/index';
+import WorkoutScreen from '@/app/(tabs)/workout/index';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { WorkoutProvider } from '@/contexts/WorkoutContext';
-import { mockAssignedWorkout } from '../../__mocks__/data/mock-workout';
+import { mockWorkoutPlan } from '../../__mocks__/data/mock-workout';
 
 // Mock expo-router
 const mockRouter = {
@@ -22,6 +22,7 @@ const mockFrom = jest.fn();
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockOrder = jest.fn();
+const mockLimit = jest.fn();
 
 jest.mock('@/utils/supabase', () => ({
   supabase: {
@@ -52,8 +53,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Setup mock chain
+// Setup mock chain for workout_plans table
 const setupMockChain = () => {
+  mockLimit.mockResolvedValue({ data: [mockWorkoutPlan], error: null });
+  mockOrder.mockReturnValue({ limit: mockLimit });
   mockFrom.mockReturnValue({
     select: mockSelect.mockReturnValue({
       eq: mockEq.mockReturnValue({
@@ -65,147 +68,170 @@ const setupMockChain = () => {
   });
 };
 
-const renderWorkoutList = () => {
+const renderWorkoutScreen = () => {
   return render(
     <ThemeProvider>
       <WorkoutProvider>
-        <WorkoutListScreen />
+        <WorkoutScreen />
       </WorkoutProvider>
     </ThemeProvider>
   );
 };
 
-describe('Workout List Screen', () => {
+describe('Workout Screen (Day-Based UI)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupMockChain();
-    mockOrder.mockResolvedValue({ data: [mockAssignedWorkout], error: null });
   });
 
   describe('rendering', () => {
-    it('renders the workout screen with header', async () => {
-      const { getByText } = renderWorkoutList();
+    it('renders the workout plan title', async () => {
+      const { getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
-        expect(getByText('Entrenamiento')).toBeTruthy();
+        expect(getByText('PROGRAMA FUERZA EXPLOSIVA')).toBeTruthy();
       });
     });
 
-    it('displays week selector', async () => {
-      const { getByTestId } = renderWorkoutList();
+    it('displays day selector', async () => {
+      const { getByTestId } = renderWorkoutScreen();
 
       await waitFor(() => {
-        expect(getByTestId('week-selector')).toBeTruthy();
+        expect(getByTestId('day-selector')).toBeTruthy();
       });
     });
 
-    it('displays workout cards for selected week', async () => {
-      const { getByText } = renderWorkoutList();
+    it('displays plan title', async () => {
+      const { getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
-        // Week 1 has day 1 workout
-        expect(getByText('FUERZA EXPLOSIVA: PIERNAS')).toBeTruthy();
-      });
-    });
-  });
-
-  describe('week selector', () => {
-    it('shows week 1 as selected by default', async () => {
-      const { getByTestId } = renderWorkoutList();
-
-      await waitFor(() => {
-        const week1Chip = getByTestId('week-chip-1');
-        expect(week1Chip.props.accessibilityState?.selected).toBe(true);
-      });
-    });
-
-    it('renders chip for each week in workout', async () => {
-      const { getByTestId } = renderWorkoutList();
-
-      await waitFor(() => {
-        expect(getByTestId('week-chip-1')).toBeTruthy();
-        expect(getByTestId('week-chip-2')).toBeTruthy();
-      });
-    });
-
-    it('changes selected week when chip is pressed', async () => {
-      const { getByTestId, getByText } = renderWorkoutList();
-
-      await waitFor(() => {
-        expect(getByTestId('week-chip-2')).toBeTruthy();
-      });
-
-      fireEvent.press(getByTestId('week-chip-2'));
-
-      await waitFor(() => {
-        // Week 2 workout title
-        expect(getByText('FUERZA EXPLOSIVA: PIERNAS')).toBeTruthy();
+        // Plan title is shown in hero header
+        expect(getByText('PROGRAMA FUERZA EXPLOSIVA')).toBeTruthy();
       });
     });
   });
 
-  describe('workout cards', () => {
-    it('displays day number for each workout', async () => {
-      const { getByText } = renderWorkoutList();
+  describe('day selector', () => {
+    it('shows day 1 as selected by default', async () => {
+      const { getByTestId } = renderWorkoutScreen();
 
       await waitFor(() => {
-        expect(getByText(/DÍA 1/i)).toBeTruthy();
+        const day1Chip = getByTestId('day-chip-1');
+        expect(day1Chip.props.accessibilityState?.selected).toBe(true);
       });
     });
 
-    it('displays workout focus/description', async () => {
-      const { getByText } = renderWorkoutList();
+    it('renders chips for all 14 days (2 weeks)', async () => {
+      const { getByTestId } = renderWorkoutScreen();
 
       await waitFor(() => {
-        expect(getByText(/Potencia de tren inferior/)).toBeTruthy();
+        expect(getByTestId('day-chip-1')).toBeTruthy();
+        expect(getByTestId('day-chip-7')).toBeTruthy();
+        expect(getByTestId('day-chip-14')).toBeTruthy();
       });
     });
 
-    it('shows exercise count per workout day', async () => {
-      const { getByText } = renderWorkoutList();
+    it('changes selected day when chip is pressed', async () => {
+      const { getByTestId, getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
-        // Week 1 day 1 has 4 exercises
-        expect(getByText(/4 ejercicios/i)).toBeTruthy();
+        expect(getByTestId('day-chip-2')).toBeTruthy();
       });
-    });
 
-    it('navigates to workout detail when card is pressed', async () => {
-      const { getByTestId } = renderWorkoutList();
+      fireEvent.press(getByTestId('day-chip-2'));
 
       await waitFor(() => {
-        expect(getByTestId('workout-card-1')).toBeTruthy();
-      });
-
-      fireEvent.press(getByTestId('workout-card-1'));
-
-      expect(mockRouter.push).toHaveBeenCalledWith({
-        pathname: '/(tabs)/workout/[id]',
-        params: { id: 'workout-uuid-001', week: 1, day: 1 },
+        // Day 2 should be selected
+        const day2Chip = getByTestId('day-chip-2');
+        expect(day2Chip.props.accessibilityState?.selected).toBe(true);
       });
     });
   });
 
-  describe('today indicator', () => {
-    it('shows HOY badge on today\'s workout', async () => {
-      // mockAssignedWorkout has scheduled_start_date of today (2026-01-20)
-      // So day 1 should be marked as today
-      const { getByTestId } = renderWorkoutList();
+  describe('objective card', () => {
+    it('displays objective for the selected day', async () => {
+      const { getByTestId, getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
-        expect(getByTestId('today-badge')).toBeTruthy();
+        expect(getByTestId('objective-card')).toBeTruthy();
+      });
+
+      // Day 1 objective
+      expect(getByText(/potencia explosiva/i)).toBeTruthy();
+    });
+  });
+
+  describe('workout blocks', () => {
+    it('displays workout blocks for the selected day', async () => {
+      const { getByTestId } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        expect(getByTestId('workout-blocks')).toBeTruthy();
+      });
+    });
+
+    it('displays block A (Calentamiento) for day 1', async () => {
+      const { getByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        expect(getByText(/BLOQUE A/)).toBeTruthy();
+        expect(getByText(/Calentamiento/i)).toBeTruthy();
+      });
+    });
+
+    it('displays circuit badge for circuit blocks', async () => {
+      const { getByTestId } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        // Day 1 has a circuit block (block-1b)
+        expect(getByTestId('circuit-badge-block-1b')).toBeTruthy();
+      });
+    });
+
+    it('displays circuit rounds', async () => {
+      const { getByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        // Day 1 circuit has 3 rounds
+        expect(getByText(/CIRCUITO \(3X\)/)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('exercise rows', () => {
+    it('displays exercises within blocks', async () => {
+      const { getByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        expect(getByText('Sentadilla con Barra')).toBeTruthy();
+      });
+    });
+
+    it('displays exercise metrics (sets/reps)', async () => {
+      const { getByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        expect(getByText(/4 SERIES/)).toBeTruthy();
+      });
+    });
+  });
+
+  describe('recommendation banner', () => {
+    it('displays recommendation for circuit blocks', async () => {
+      const { getByTestId } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        expect(getByTestId('recommendation-banner')).toBeTruthy();
       });
     });
   });
 
   describe('loading state', () => {
-    it('renders loading indicator when isLoading is true', async () => {
-      // We test by checking that loading disappears after data loads
-      const { queryByTestId, getByText } = renderWorkoutList();
+    it('renders loading indicator initially', async () => {
+      const { queryByTestId, getByText } = renderWorkoutScreen();
 
-      // Wait for content to load, confirming loading state was handled
       await waitFor(() => {
-        expect(getByText('Entrenamiento')).toBeTruthy();
+        expect(getByText('PROGRAMA FUERZA EXPLOSIVA')).toBeTruthy();
       });
 
       // After loading, loading indicator should not be present
@@ -214,10 +240,10 @@ describe('Workout List Screen', () => {
   });
 
   describe('empty state', () => {
-    it('shows empty state when no workouts assigned', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+    it('shows empty state when no workout plan assigned', async () => {
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
-      const { getByText } = renderWorkoutList();
+      const { getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
         expect(getByText(/No tienes entrenamientos/i)).toBeTruthy();
@@ -225,9 +251,9 @@ describe('Workout List Screen', () => {
     });
 
     it('shows message about contacting coach', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
-      const { getByText } = renderWorkoutList();
+      const { getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
         expect(getByText(/contacta a tu coach/i)).toBeTruthy();
@@ -237,12 +263,12 @@ describe('Workout List Screen', () => {
 
   describe('error state', () => {
     it('displays error message when fetch fails', async () => {
-      mockOrder.mockResolvedValue({
+      mockLimit.mockResolvedValue({
         data: null,
         error: { message: 'Error de conexión' },
       });
 
-      const { getByText } = renderWorkoutList();
+      const { getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
         expect(getByText('Error')).toBeTruthy();
@@ -250,12 +276,12 @@ describe('Workout List Screen', () => {
     });
 
     it('shows retry button on error', async () => {
-      mockOrder.mockResolvedValue({
+      mockLimit.mockResolvedValue({
         data: null,
         error: { message: 'Error de conexión' },
       });
 
-      const { getByText } = renderWorkoutList();
+      const { getByText } = renderWorkoutScreen();
 
       await waitFor(() => {
         expect(getByText(/reintentar/i)).toBeTruthy();
@@ -264,20 +290,82 @@ describe('Workout List Screen', () => {
   });
 
   describe('rest day display', () => {
-    it('displays rest day differently from workout days', async () => {
-      const { getByText } = renderWorkoutList();
+    it('displays rest day content for day 7', async () => {
+      const { getByTestId } = renderWorkoutScreen();
 
       await waitFor(() => {
-        // Day 3 is a rest day
-        expect(getByText('DESCANSO ACTIVO')).toBeTruthy();
+        expect(getByTestId('day-chip-7')).toBeTruthy();
+      });
+
+      fireEvent.press(getByTestId('day-chip-7'));
+
+      await waitFor(() => {
+        expect(getByTestId('rest-day-content')).toBeTruthy();
       });
     });
+  });
 
-    it('shows rest day icon or indicator', async () => {
-      const { getByTestId } = renderWorkoutList();
+  describe('block types', () => {
+    it('displays straight blocks differently from circuit blocks', async () => {
+      const { getByTestId } = renderWorkoutScreen();
 
       await waitFor(() => {
-        expect(getByTestId('rest-day-indicator-3')).toBeTruthy();
+        // Day 1 has both types
+        expect(getByTestId('workout-block-block-1a')).toBeTruthy(); // straight
+        expect(getByTestId('workout-block-block-1b')).toBeTruthy(); // circuit
+      });
+    });
+  });
+
+  describe('navigation between days', () => {
+    it('updates content when navigating to day 8 (week 2)', async () => {
+      const { getByTestId } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        expect(getByTestId('day-chip-8')).toBeTruthy();
+      });
+
+      fireEvent.press(getByTestId('day-chip-8'));
+
+      // Day 8 should be selected now
+      await waitFor(() => {
+        const dayChip = getByTestId('day-chip-8');
+        expect(dayChip.props.accessibilityState.selected).toBe(true);
+      });
+    });
+  });
+
+  describe('plan goal display', () => {
+    it('displays workout plan goal when available', async () => {
+      const { getByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        // mockWorkoutPlan.goal = 'Potencia y fuerza funcional'
+        expect(getByText('Potencia y fuerza funcional')).toBeTruthy();
+      });
+    });
+  });
+
+  describe('exercise rest time', () => {
+    it('displays rest time in exercise metrics', async () => {
+      const { getAllByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        // Day 1, Block A, Exercise 1 has rest: 90
+        // There may be multiple exercises with 90s rest
+        const restTexts = getAllByText(/90s DESC/);
+        expect(restTexts.length).toBeGreaterThanOrEqual(1);
+      });
+    });
+  });
+
+  describe('exercise weight/RPE', () => {
+    it('displays weight when available', async () => {
+      const { getByText } = renderWorkoutScreen();
+
+      await waitFor(() => {
+        // Day 1, Block A, Exercise 1 has weight: 'RPE 7'
+        expect(getByText('RPE 7')).toBeTruthy();
       });
     });
   });

@@ -3,7 +3,7 @@ import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import NutritionScreen from '@/app/(tabs)/nutrition/index';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { NutritionProvider } from '@/contexts/NutritionContext';
-import { mockAssignedNutrition, mockMacros } from '../../__mocks__/data/mock-nutrition';
+import { mockNutritionPlan, mockMacros, mockNutritionDocuments } from '../../__mocks__/data/mock-nutrition';
 
 // Mock expo-router
 const mockRouter = {
@@ -22,6 +22,7 @@ const mockFrom = jest.fn();
 const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockOrder = jest.fn();
+const mockLimit = jest.fn();
 
 jest.mock('@/utils/supabase', () => ({
   supabase: {
@@ -52,8 +53,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Setup mock chain
+// Setup mock chain for nutrition_plans table
 const setupMockChain = () => {
+  mockLimit.mockResolvedValue({ data: [mockNutritionPlan], error: null });
+  mockOrder.mockReturnValue({ limit: mockLimit });
   mockFrom.mockReturnValue({
     select: mockSelect.mockReturnValue({
       eq: mockEq.mockReturnValue({
@@ -79,7 +82,6 @@ describe('Nutrition Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupMockChain();
-    mockOrder.mockResolvedValue({ data: [mockAssignedNutrition], error: null });
   });
 
   describe('rendering', () => {
@@ -144,56 +146,20 @@ describe('Nutrition Screen', () => {
     });
   });
 
-  describe('meals section', () => {
-    it('displays meals section title', async () => {
-      const { getByText } = renderNutritionScreen();
-
-      await waitFor(() => {
-        expect(getByText(/comidas/i)).toBeTruthy();
-      });
-    });
-
-    it('displays all meals from plan', async () => {
-      const { getByText } = renderNutritionScreen();
-
-      await waitFor(() => {
-        expect(getByText('Desayuno Pro-Energia')).toBeTruthy();
-        expect(getByText('Media Manana')).toBeTruthy();
-        expect(getByText('Almuerzo Potencia')).toBeTruthy();
-      });
-    });
-
-    it('displays meal times', async () => {
-      const { getByText } = renderNutritionScreen();
-
-      await waitFor(() => {
-        expect(getByText('07:00')).toBeTruthy();
-        expect(getByText('10:00')).toBeTruthy();
-        expect(getByText('13:00')).toBeTruthy();
-      });
-    });
-
-    it('displays meal macros', async () => {
-      const { getAllByText } = renderNutritionScreen();
-
-      await waitFor(() => {
-        // Desayuno has 40g protein
-        const proteinElements = getAllByText(/40g/);
-        expect(proteinElements.length).toBeGreaterThan(0);
-      });
-    });
-  });
+  // Note: Meals section tests removed because nutrition_plans table
+  // doesn't have a meals column yet. Meals feature pending implementation.
 
   describe('documents section', () => {
-    it('displays documents section title', async () => {
+    it('displays documents section when documents exist', async () => {
       const { getByText } = renderNutritionScreen();
 
       await waitFor(() => {
+        // mockNutritionPlan has 3 documents
         expect(getByText(/documentos/i)).toBeTruthy();
       });
     });
 
-    it('displays document names', async () => {
+    it('displays document names from mock', async () => {
       const { getByText } = renderNutritionScreen();
 
       await waitFor(() => {
@@ -244,7 +210,7 @@ describe('Nutrition Screen', () => {
 
   describe('empty state', () => {
     it('shows empty state when no nutrition plan', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
       const { getByText } = renderNutritionScreen();
 
@@ -254,7 +220,7 @@ describe('Nutrition Screen', () => {
     });
 
     it('shows message to contact coach', async () => {
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      mockLimit.mockResolvedValue({ data: [], error: null });
 
       const { getByText } = renderNutritionScreen();
 
@@ -266,7 +232,7 @@ describe('Nutrition Screen', () => {
 
   describe('error state', () => {
     it('displays error message when fetch fails', async () => {
-      mockOrder.mockResolvedValue({
+      mockLimit.mockResolvedValue({
         data: null,
         error: { message: 'Error de conexión' },
       });

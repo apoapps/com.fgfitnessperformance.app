@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -49,7 +49,7 @@ export default function DashboardScreen() {
   const { colors } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { displayName, isLoading: profileLoading } = useProfile();
-  const { activeWorkout, currentWeek, getTodayWorkout, isLoading: workoutLoading } = useWorkout();
+  const { workoutPlan, currentWeek, selectedDay, getCurrentDay, getWeekForDay, isLoading: workoutLoading } = useWorkout();
   const { unreadCount } = useChat();
   const router = useRouter();
 
@@ -60,22 +60,15 @@ export default function DashboardScreen() {
     }
   }, [isAuthenticated, router]);
 
-  // Get today's workout
-  const todayWorkout = useMemo(() => {
-    return getTodayWorkout();
-  }, [getTodayWorkout]);
+  // Get today's workout day using the new context API
+  const todayWorkout = getCurrentDay();
+  const currentWeekData = getWeekForDay(selectedDay);
 
   const isLoading = profileLoading || workoutLoading;
 
   const handleWorkoutPress = () => {
-    if (activeWorkout && todayWorkout) {
-      router.push({
-        pathname: '/(tabs)/workout/[id]',
-        params: { id: activeWorkout.id, week: currentWeek, day: todayWorkout.day_number },
-      });
-    } else {
-      router.push('/(tabs)/workout');
-    }
+    // Navigate to workout tab where the day-based view is
+    router.push('/(tabs)/workout');
   };
 
   return (
@@ -181,7 +174,7 @@ export default function DashboardScreen() {
                     {/* Header with Today Badge */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Text variant="caption" color="textMuted">
-                        Día {todayWorkout.day_number} • Semana {currentWeek}
+                        Día {selectedDay} • Semana {currentWeekData?.weekNumber || currentWeek}
                       </Text>
                       <View
                         testID="today-indicator"
@@ -203,17 +196,17 @@ export default function DashboardScreen() {
                       {todayWorkout.name}
                     </Text>
 
-                    {/* Focus */}
-                    {todayWorkout.focus && (
+                    {/* Objective (replaces focus) */}
+                    {todayWorkout.objective && (
                       <Text variant="body" color="textMuted" numberOfLines={2}>
-                        {todayWorkout.focus}
+                        {todayWorkout.objective}
                       </Text>
                     )}
 
-                    {/* Exercise Count */}
+                    {/* Block Count (replaces exercise count) */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Text variant="bodySm" color="textMuted">
-                        {todayWorkout.exercises?.length || 0} ejercicios
+                        {todayWorkout.blocks?.length || 0} bloques
                       </Text>
                       <View
                         style={{
@@ -238,11 +231,11 @@ export default function DashboardScreen() {
                     🏖️
                   </Text>
                   <Text variant="body" color="textMuted" style={{ textAlign: 'center' }}>
-                    {activeWorkout
+                    {workoutPlan
                       ? 'Día de descanso o sin entrenamiento hoy'
                       : 'Sin entrenamiento asignado'}
                   </Text>
-                  {!activeWorkout && (
+                  {!workoutPlan && (
                     <Text variant="bodySm" color="textMuted" style={{ textAlign: 'center' }}>
                       Contacta a tu coach para comenzar
                     </Text>
