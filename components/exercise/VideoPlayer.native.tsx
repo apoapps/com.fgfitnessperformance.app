@@ -1,29 +1,39 @@
-import React, { useState } from 'react';
-import { View, Pressable, ActivityIndicator, Image } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useState, useCallback } from 'react';
+import { View, Pressable, Image, Dimensions } from 'react-native';
+import YoutubeIframe from 'react-native-youtube-iframe';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
-import { getEmbedUrl, detectVideoProvider, getThumbnailUrl } from '@/utils/video';
+import { getYouTubeVideoId, detectVideoProvider, getThumbnailUrl } from '@/utils/video';
 
 interface VideoPlayerProps {
   url: string;
   thumbnailUrl?: string | null;
 }
 
+const { width: screenWidth } = Dimensions.get('window');
+
 export function VideoPlayer({ url, thumbnailUrl }: VideoPlayerProps) {
   const { colors } = useTheme();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const embedUrl = getEmbedUrl(url);
   const provider = detectVideoProvider(url);
+  const videoId = provider === 'youtube' ? getYouTubeVideoId(url) : null;
   const thumbnail = thumbnailUrl || getThumbnailUrl(url);
 
   const handleOpenExternal = async () => {
     await WebBrowser.openBrowserAsync(url);
   };
+
+  const onReady = useCallback(() => {
+    setIsReady(true);
+  }, []);
+
+  const onError = useCallback(() => {
+    setHasError(true);
+  }, []);
 
   // Get provider info for display
   const getProviderInfo = () => {
@@ -43,8 +53,11 @@ export function VideoPlayer({ url, thumbnailUrl }: VideoPlayerProps) {
 
   const providerInfo = getProviderInfo();
 
-  // If we can't generate an embed URL, show fallback with thumbnail
-  if (!embedUrl) {
+  // Calculate player height for 16:9 aspect ratio
+  const playerHeight = (screenWidth * 9) / 16;
+
+  // If not YouTube or no video ID, show fallback with thumbnail
+  if (provider !== 'youtube' || !videoId) {
     return (
       <Pressable
         testID="video-player-fallback"
@@ -157,65 +170,76 @@ export function VideoPlayer({ url, thumbnailUrl }: VideoPlayerProps) {
       testID="video-player"
       style={{
         width: '100%',
-        aspectRatio: 16 / 9,
-        backgroundColor: colors.surface,
+        backgroundColor: '#000',
       }}
     >
-      {/* Loading indicator */}
-      {isLoading && (
+      {/* Loading thumbnail while player initializes */}
+      {!isReady && thumbnail && (
         <View
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
-            justifyContent: 'center',
-            alignItems: 'center',
+            height: playerHeight,
             zIndex: 1,
-            backgroundColor: colors.surface,
           }}
         >
-          {thumbnail && (
-            <Image
-              source={{ uri: thumbnail }}
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-              }}
-              resizeMode="cover"
-            />
-          )}
+          <Image
+            source={{ uri: thumbnail }}
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+            resizeMode="cover"
+          />
           <View
             style={{
               position: 'absolute',
               width: '100%',
               height: '100%',
               backgroundColor: 'rgba(0,0,0,0.3)',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
-          />
-          <ActivityIndicator size="large" color={colors.primary} />
+          >
+            <View
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: '#FF0000',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="logo-youtube" size={32} color="#FFFFFF" />
+            </View>
+          </View>
         </View>
       )}
 
-      {/* WebView with embedded video */}
-      <WebView
-        source={{ uri: embedUrl }}
-        style={{ flex: 1, backgroundColor: 'transparent' }}
-        allowsFullscreenVideo
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        javaScriptEnabled
-        domStorageEnabled
-        onLoadEnd={() => setIsLoading(false)}
-        onError={() => {
-          setIsLoading(false);
-          setHasError(true);
+      {/* YouTube Player */}
+      <YoutubeIframe
+        height={playerHeight}
+        width={screenWidth}
+        videoId={videoId}
+        play={false}
+        onReady={onReady}
+        onError={onError}
+        initialPlayerParams={{
+          controls: true,
+          modestbranding: true,
+          rel: false,
+          showClosedCaptions: false,
+          preventFullScreen: false,
         }}
-        onHttpError={() => {
-          setIsLoading(false);
-          setHasError(true);
+        webViewProps={{
+          allowsFullscreenVideo: true,
+          allowsInlineMediaPlayback: true,
+        }}
+        webViewStyle={{
+          opacity: isReady ? 1 : 0,
         }}
       />
 
@@ -232,6 +256,7 @@ export function VideoPlayer({ url, thumbnailUrl }: VideoPlayerProps) {
           backgroundColor: pressed ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.6)',
           justifyContent: 'center',
           alignItems: 'center',
+          zIndex: 10,
         })}
       >
         <Ionicons name="open-outline" size={18} color="#FFFFFF" />
