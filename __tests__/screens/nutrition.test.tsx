@@ -87,7 +87,7 @@ describe('Nutrition Screen', () => {
       const { getByText } = renderNutritionScreen();
 
       await waitFor(() => {
-        expect(getByText('NUTRICIÓN')).toBeTruthy();
+        expect(getByText('Nutrición')).toBeTruthy();
       });
     });
 
@@ -237,7 +237,7 @@ describe('Nutrition Screen', () => {
       const { getByText } = renderNutritionScreen();
 
       await waitFor(() => {
-        expect(getByText('NUTRICIÓN')).toBeTruthy();
+        expect(getByText('Nutrición')).toBeTruthy();
       });
     });
   });

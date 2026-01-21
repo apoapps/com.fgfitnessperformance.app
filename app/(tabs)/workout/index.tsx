@@ -3,6 +3,7 @@ import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Text, Button, Card } from '@/components/ui';
+import { QuestionButton } from '@/components/chat';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
 import type { WorkoutDay } from '@/__mocks__/types/database.types';
@@ -157,16 +158,26 @@ function WorkoutCard({ day, dayNumber, workoutId, weekNumber, isToday, onPress }
 
           {/* Footer */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            {!isRest && exerciseCount > 0 && (
-              <Text variant="bodySm" color="textMuted">
-                {exerciseCount} ejercicios
-              </Text>
-            )}
-            {isRest && (
-              <Text variant="bodySm" color="success">
-                Día de recuperación
-              </Text>
-            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {!isRest && exerciseCount > 0 && (
+                <Text variant="bodySm" color="textMuted">
+                  {exerciseCount} ejercicios
+                </Text>
+              )}
+              {isRest && (
+                <Text variant="bodySm" color="success">
+                  Día de recuperación
+                </Text>
+              )}
+              {!isRest && (
+                <QuestionButton
+                  referenceType="workout"
+                  referenceId={`${workoutId}-week${weekNumber}-day${dayNumber}`}
+                  referenceTag={`[Semana ${weekNumber} - Día ${dayNumber}: ${day.name}]`}
+                  compact
+                />
+              )}
+            </View>
             <View
               style={{
                 width: 32,
@@ -253,14 +264,14 @@ export default function WorkoutListScreen() {
 
   if (!activeWorkout) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ flex: 1, padding: 20 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+        <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
           {/* Header */}
-          <View style={{ gap: 8, marginBottom: 24 }}>
-            <Text variant="hero" uppercase>
+          <View style={{ gap: 4, marginBottom: 24 }}>
+            <Text variant="hero" style={{ fontSize: 32 }}>
               Entrenamiento
             </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
+            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
           </View>
 
           {/* Empty State */}
@@ -292,14 +303,14 @@ export default function WorkoutListScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flex: 1, padding: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
         {/* Header */}
-        <View style={{ gap: 8, marginBottom: 24 }}>
-          <Text variant="hero" uppercase>
+        <View style={{ gap: 4, marginBottom: 24 }}>
+          <Text variant="hero" style={{ fontSize: 32 }}>
             Entrenamiento
           </Text>
-          <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
+          <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
         </View>
 
         {/* Week Selector */}
@@ -321,7 +332,7 @@ export default function WorkoutListScreen() {
         {/* Workout Cards */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
+          contentContainerStyle={{ gap: 12, paddingBottom: 100 }}
         >
           {weekWorkouts.map((day) => (
             <WorkoutCard

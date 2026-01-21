@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button, Card } from '@/components/ui';
+import { QuestionButton } from '@/components/chat';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNutrition } from '@/contexts/NutritionContext';
 import type { NutritionMeal, NutritionDocument } from '@/__mocks__/types/database.types';
@@ -172,31 +173,39 @@ function MealCard({ meal }: MealCardProps) {
           </Text>
         )}
 
-        {/* Meal Macros */}
-        {meal.macros && (
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            {meal.macros.protein !== undefined && (
-              <Text variant="caption" style={{ color: '#3b82f6' }}>
-                {meal.macros.protein}g P
-              </Text>
-            )}
-            {meal.macros.carbs !== undefined && (
-              <Text variant="caption" style={{ color: '#22c55e' }}>
-                {meal.macros.carbs}g C
-              </Text>
-            )}
-            {meal.macros.fat !== undefined && (
-              <Text variant="caption" color="primary">
-                {meal.macros.fat}g G
-              </Text>
-            )}
-            {meal.macros.calories !== undefined && (
-              <Text variant="caption" color="textMuted">
-                {meal.macros.calories} kcal
-              </Text>
-            )}
-          </View>
-        )}
+        {/* Meal Macros and Question Button */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          {meal.macros && (
+            <View style={{ flexDirection: 'row', gap: 16, flex: 1 }}>
+              {meal.macros.protein !== undefined && (
+                <Text variant="caption" style={{ color: '#3b82f6' }}>
+                  {meal.macros.protein}g P
+                </Text>
+              )}
+              {meal.macros.carbs !== undefined && (
+                <Text variant="caption" style={{ color: '#22c55e' }}>
+                  {meal.macros.carbs}g C
+                </Text>
+              )}
+              {meal.macros.fat !== undefined && (
+                <Text variant="caption" color="primary">
+                  {meal.macros.fat}g G
+                </Text>
+              )}
+              {meal.macros.calories !== undefined && (
+                <Text variant="caption" color="textMuted">
+                  {meal.macros.calories} kcal
+                </Text>
+              )}
+            </View>
+          )}
+          <QuestionButton
+            referenceType="meal"
+            referenceId={meal.meal_instance_id || meal.name}
+            referenceTag={`[${meal.time} - ${meal.name}]`}
+            compact
+          />
+        </View>
       </View>
     </Card>
   );
@@ -298,14 +307,14 @@ export default function NutritionScreen() {
 
   if (!activePlan) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ flex: 1, padding: 20 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+        <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
           {/* Header */}
-          <View style={{ gap: 8, marginBottom: 24 }}>
-            <Text variant="hero" uppercase>
+          <View style={{ gap: 4, marginBottom: 24 }}>
+            <Text variant="hero" style={{ fontSize: 32 }}>
               Nutrición
             </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
+            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
           </View>
 
           {/* Empty State */}
@@ -337,15 +346,15 @@ export default function NutritionScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <View style={{ padding: 20, gap: 24 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <View style={{ gap: 8 }}>
-            <Text variant="hero" uppercase>
+          <View style={{ gap: 4 }}>
+            <Text variant="hero" style={{ fontSize: 32 }}>
               Nutrición
             </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
+            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
           </View>
 
           {/* Macro Chart */}

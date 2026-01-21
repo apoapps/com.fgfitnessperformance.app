@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ProfileProvider } from '@/contexts/ProfileContext';
 import { WorkoutProvider } from '@/contexts/WorkoutContext';
 import { NutritionProvider } from '@/contexts/NutritionContext';
+import { ChatProvider } from '@/contexts/ChatContext';
 import '../global.css';
 
 function RootLayoutContent() {
@@ -16,6 +17,13 @@ function RootLayoutContent() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="chat"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </>
@@ -29,7 +37,9 @@ export default function RootLayout() {
         <ProfileProvider>
           <WorkoutProvider>
             <NutritionProvider>
-              <RootLayoutContent />
+              <ChatProvider>
+                <RootLayoutContent />
+              </ChatProvider>
             </NutritionProvider>
           </WorkoutProvider>
         </ProfileProvider>

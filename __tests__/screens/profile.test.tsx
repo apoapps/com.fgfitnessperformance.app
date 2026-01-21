@@ -90,7 +90,7 @@ describe('Profile Screen', () => {
 
       await waitFor(() => {
         // The header uses uppercase=true so text is transformed to uppercase
-        expect(getByText('PERFIL')).toBeTruthy();
+        expect(getByText('Perfil')).toBeTruthy();
       });
     });
 
@@ -197,7 +197,7 @@ describe('Profile Screen', () => {
       // Note: The profile screen shows loading only while profile is being fetched
       // After loading completes, it shows content
       await waitFor(() => {
-        expect(getByText('PERFIL')).toBeTruthy();
+        expect(getByText('Perfil')).toBeTruthy();
       });
     });
   });

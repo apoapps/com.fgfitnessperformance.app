@@ -47,7 +47,10 @@ jest.mock('@/utils/supabase', () => ({
 jest.mock('expo-font', () => ({
   useFonts: () => [true, null],
   loadAsync: jest.fn(),
+  isLoaded: () => true,
 }));
+
+// Note: @expo/vector-icons is mocked via __mocks__/@expo/vector-icons.js
 
 // Mock expo-splash-screen
 jest.mock('expo-splash-screen', () => ({

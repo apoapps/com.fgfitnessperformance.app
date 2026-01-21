@@ -87,7 +87,7 @@ describe('Workout List Screen', () => {
       const { getByText } = renderWorkoutList();
 
       await waitFor(() => {
-        expect(getByText('ENTRENAMIENTO')).toBeTruthy();
+        expect(getByText('Entrenamiento')).toBeTruthy();
       });
     });
 
@@ -205,7 +205,7 @@ describe('Workout List Screen', () => {
 
       // Wait for content to load, confirming loading state was handled
       await waitFor(() => {
-        expect(getByText('ENTRENAMIENTO')).toBeTruthy();
+        expect(getByText('Entrenamiento')).toBeTruthy();
       });
 
       // After loading, loading indicator should not be present

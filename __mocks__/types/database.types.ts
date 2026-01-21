@@ -183,3 +183,31 @@ export interface StaffClientAssignment {
   ends_at: string | null;
   is_active: boolean;
 }
+
+// Chat reference types
+export type ChatReferenceType = 'workout' | 'nutrition' | 'exercise' | 'meal';
+
+// Chat message from chat_messages table
+export interface ChatMessage {
+  id: string;
+  thread_id: string;
+  sender: 'user' | 'coach';
+  content: string;
+  image_url?: string;
+  reference_tag?: string; // "[Día 3 - Push Day]" or "[Almuerzo - 13:00]"
+  reference_type?: ChatReferenceType;
+  reference_id?: string;
+  created_at: string;
+  read_at?: string;
+}
+
+// Chat thread from chat_threads table
+export interface ChatThread {
+  id: string;
+  client_id: string;
+  coach_id: string;
+  last_message?: ChatMessage;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+}

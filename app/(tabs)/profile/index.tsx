@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator, Image } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button, Card } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -77,15 +77,16 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flex: 1, padding: 20, gap: 24 }}>
-        {/* Header */}
-        <View style={{ gap: 8 }}>
-          <Text variant="hero" uppercase>
-            Perfil
-          </Text>
-          <View style={{ width: 48, height: 4, backgroundColor: colors.primary }} />
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
+          {/* Header */}
+          <View style={{ gap: 4 }}>
+            <Text variant="hero" style={{ fontSize: 32 }}>
+              Perfil
+            </Text>
+            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
+          </View>
 
         {/* Avatar & Name Card */}
         <Card variant="glass">
@@ -260,15 +261,16 @@ export default function ProfileScreen() {
           </View>
         </Card>
 
-        {/* Logout Button */}
-        <View style={{ marginTop: 'auto' }}>
-          <Button
-            title="Cerrar Sesión"
-            variant="outline"
-            onPress={signOut}
-          />
+          {/* Logout Button */}
+          <View style={{ marginTop: 24 }}>
+            <Button
+              title="Cerrar Sesión"
+              variant="outline"
+              onPress={signOut}
+            />
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
