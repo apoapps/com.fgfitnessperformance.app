@@ -180,8 +180,14 @@ export default function WorkoutDetailScreen() {
           contentContainerStyle={{ padding: 20, paddingTop: 0, gap: 20 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Objective Card */}
-          {workoutDay.objective && <ObjectiveCard objective={workoutDay.objective} />}
+          {/* Objective Card - show plan objective or day objective */}
+          {(workoutPlan?.structure?.objective || workoutDay.objective) && (
+            <ObjectiveCard
+              objective={workoutDay.objective || workoutPlan?.structure?.objective || ''}
+              programName={workoutPlan?.structure?.name}
+              description={workoutPlan?.structure?.description}
+            />
+          )}
 
           {/* Workout Blocks */}
           {workoutDay.blocks?.map((block, index) => (

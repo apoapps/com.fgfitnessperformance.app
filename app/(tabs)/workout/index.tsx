@@ -214,7 +214,7 @@ export default function WorkoutScreen() {
           {/* Day content */}
           {currentDay && (
             <>
-              {/* Objective Card */}
+              {/* Day-specific Objective Card */}
               {currentDay.objective && <ObjectiveCard objective={currentDay.objective} />}
 
               {/* Rest Day State */}

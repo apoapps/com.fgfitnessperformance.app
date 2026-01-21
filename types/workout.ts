@@ -44,6 +44,9 @@ export interface WorkoutWeek {
 // Workout structure JSONB
 export interface WorkoutStructure {
   weeks: WorkoutWeek[];
+  name?: string;
+  objective?: string;
+  description?: string;
 }
 
 // Workout plan from workout_plans table

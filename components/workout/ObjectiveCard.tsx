@@ -1,13 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface ObjectiveCardProps {
   objective: string;
+  programName?: string;
+  description?: string;
 }
 
-export function ObjectiveCard({ objective }: ObjectiveCardProps) {
+export function ObjectiveCard({ objective, programName, description }: ObjectiveCardProps) {
   const { colors } = useTheme();
 
   return (
@@ -17,32 +20,57 @@ export function ObjectiveCard({ objective }: ObjectiveCardProps) {
         backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
-        marginBottom: 20,
+        gap: 12,
       }}
     >
-      {/* Header with icon */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <View
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: 12,
-            backgroundColor: colors.primary + '20',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 12, color: colors.primary }}>O</Text>
+      {/* Program name if provided */}
+      {programName && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 14,
+              backgroundColor: colors.primary,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Ionicons name="barbell" size={16} color={colors.background} />
+          </View>
+          <Text variant="title" style={{ fontSize: 16, flex: 1 }}>
+            {programName}
+          </Text>
         </View>
-        <Text variant="caption" color="textMuted" uppercase style={{ letterSpacing: 1 }}>
-          OBJETIVO
+      )}
+
+      {/* Objective section */}
+      <View style={{ gap: 6 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="flag" size={14} color={colors.primary} />
+          <Text variant="caption" color="textMuted" uppercase style={{ letterSpacing: 1 }}>
+            OBJETIVO
+          </Text>
+        </View>
+        <Text variant="body" style={{ color: colors.text, lineHeight: 22 }}>
+          {objective}
         </Text>
       </View>
 
-      {/* Objective text */}
-      <Text variant="body" style={{ color: colors.text, lineHeight: 22 }}>
-        {objective}
-      </Text>
+      {/* Description if provided */}
+      {description && (
+        <View style={{ gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="document-text-outline" size={14} color={colors.textMuted} />
+            <Text variant="caption" color="textMuted" uppercase style={{ letterSpacing: 1 }}>
+              DESCRIPCIÓN
+            </Text>
+          </View>
+          <Text variant="bodySm" color="textMuted" style={{ lineHeight: 20 }}>
+            {description}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

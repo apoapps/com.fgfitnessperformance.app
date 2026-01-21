@@ -83,6 +83,9 @@ export interface WorkoutWeek {
 // Workout structure JSONB
 export interface WorkoutStructure {
   weeks: WorkoutWeek[];
+  name?: string;
+  objective?: string;
+  description?: string;
 }
 
 // Progress data JSONB
