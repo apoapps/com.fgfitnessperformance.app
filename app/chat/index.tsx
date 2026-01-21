@@ -22,14 +22,19 @@ export default function ChatScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { prefill, referenceType, referenceId } = useLocalSearchParams<{
-    prefill?: string;
+  const { referenceType, referenceId, referenceTag } = useLocalSearchParams<{
     referenceType?: ChatReferenceType;
     referenceId?: string;
+    referenceTag?: string;
   }>();
   const { messages, sendMessage, loadMessages, markAsRead, unreadCount } = useChat();
-  const [inputText, setInputText] = useState(prefill || '');
+  const [inputText, setInputText] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [activeReference, setActiveReference] = useState<{
+    type: ChatReferenceType;
+    id: string;
+    tag: string;
+  } | null>(null);
   const hasMarkedRead = useRef(false);
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
@@ -62,11 +67,20 @@ export default function ChatScreen() {
     }
   }, [messages.length, unreadCount, markAsRead]);
 
+  // Set active reference from URL params and auto-focus input
   useEffect(() => {
-    if (prefill) {
-      setInputText(prefill);
+    if (referenceType && referenceTag) {
+      setActiveReference({
+        type: referenceType,
+        id: referenceId || '',
+        tag: referenceTag,
+      });
+      // Auto-focus input when opening with a reference
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
     }
-  }, [prefill]);
+  }, [referenceType, referenceId, referenceTag]);
 
   const scrollToEnd = useCallback(() => {
     setTimeout(() => {
@@ -76,14 +90,22 @@ export default function ChatScreen() {
 
   const handleSend = useCallback(() => {
     if (inputText.trim()) {
-      const referenceTagMatch = inputText.match(/^\[.*?\]\s*/);
-      const referenceTag = referenceTagMatch ? referenceTagMatch[0].trim() : undefined;
-
-      sendMessage(inputText, referenceType, referenceId, referenceTag);
+      // Send with reference metadata (tag is shown separately in ChatBubble)
+      sendMessage(
+        inputText.trim(),
+        activeReference?.type,
+        activeReference?.id,
+        activeReference?.tag
+      );
       setInputText('');
+      setActiveReference(null); // Clear reference after sending
       scrollToEnd();
     }
-  }, [inputText, sendMessage, referenceType, referenceId, scrollToEnd]);
+  }, [inputText, sendMessage, activeReference, scrollToEnd]);
+
+  const clearReference = useCallback(() => {
+    setActiveReference(null);
+  }, []);
 
   const renderMessage = useCallback(
     ({ item }: { item: ChatMessage }) => <ChatBubble message={item} />,
@@ -157,12 +179,35 @@ export default function ChatScreen() {
             },
           ]}
         >
+          {/* Reference chip - shown above input when there's an active reference */}
+          {activeReference && (
+            <View style={[styles.referenceChipContainer, { borderTopColor: colors.border }]}>
+              <View style={[styles.referenceChip, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons
+                  name={activeReference.type === 'exercise' ? 'barbell' : 'calendar'}
+                  size={14}
+                  color={colors.primary}
+                />
+                <Text variant="caption" style={{ color: colors.primary, flex: 1 }} numberOfLines={1}>
+                  {activeReference.tag.replace(/[\[\]]/g, '')}
+                </Text>
+                <Pressable
+                  onPress={clearReference}
+                  hitSlop={8}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+                >
+                  <Ionicons name="close-circle" size={16} color={colors.primary} />
+                </Pressable>
+              </View>
+            </View>
+          )}
+
           <View
             style={[
               styles.inputWrapper,
               {
                 backgroundColor: colors.surface,
-                borderTopColor: colors.border,
+                borderTopColor: activeReference ? 'transparent' : colors.border,
               },
             ]}
           >
@@ -178,7 +223,7 @@ export default function ChatScreen() {
               ]}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Escribe tu mensaje..."
+              placeholder={activeReference ? 'Escribe tu duda...' : 'Escribe tu mensaje...'}
               placeholderTextColor={colors.textMuted}
               multiline
               maxLength={1000}
@@ -198,14 +243,13 @@ export default function ChatScreen() {
                       ? colors.primaryDark
                       : colors.primary
                     : colors.surfaceHighlight,
-                  opacity: hasContent ? 1 : 0.5,
                 },
               ]}
             >
               <Ionicons
                 name="send"
-                size={18}
-                color={hasContent ? colors.background : colors.textMuted}
+                size={20}
+                color={hasContent ? colors.textOnPrimary : colors.text}
               />
             </Pressable>
           </View>
@@ -250,6 +294,20 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     // Ensures input stays above keyboard on iOS
+  },
+  referenceChipContainer: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+  },
+  referenceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
   },
   inputWrapper: {
     flexDirection: 'row',

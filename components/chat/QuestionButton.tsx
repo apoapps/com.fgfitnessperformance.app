@@ -26,9 +26,9 @@ export function QuestionButton({
     router.push({
       pathname: '/chat',
       params: {
-        prefill: `${referenceTag} `,
         referenceType,
         referenceId,
+        referenceTag,
       },
     });
   };

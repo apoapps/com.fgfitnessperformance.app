@@ -156,9 +156,23 @@ export function ChatProvider({ children }: ChatProviderProps) {
         (payload) => {
           const newMessage = chatMessageFromRow(payload.new as ChatMessageRow);
           setMessages((prev) => {
-            // Avoid duplicates (in case we added it optimistically)
-            if (prev.some((m) => m.id === newMessage.id)) {
-              return prev;
+            // Avoid duplicates - check by ID or by temp ID (optimistic messages)
+            const isDuplicate = prev.some((m) =>
+              m.id === newMessage.id ||
+              // Also check if there's an optimistic message with same content (temp-xxx IDs)
+              (m.id.startsWith('temp-') &&
+               m.content === newMessage.content &&
+               m.sender_id === newMessage.sender_id)
+            );
+            if (isDuplicate) {
+              // Replace optimistic message with real one if exists
+              return prev.map((m) =>
+                m.id.startsWith('temp-') &&
+                m.content === newMessage.content &&
+                m.sender_id === newMessage.sender_id
+                  ? newMessage
+                  : m
+              );
             }
             return [...prev, newMessage];
           });
@@ -207,13 +221,18 @@ export function ChatProvider({ children }: ChatProviderProps) {
         return;
       }
 
+      // Validate if referenceId is a valid UUID (reference_id column expects UUID)
+      const isValidUUID = referenceId
+        ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(referenceId)
+        : false;
+
       const messageData = {
         thread_id: thread.id,
         sender_id: user.id,
         sender_type: 'client' as const,
         content: content.trim(),
         reference_type: referenceType || null,
-        reference_id: referenceId || null,
+        reference_id: isValidUUID ? referenceId : null, // Only send if valid UUID
         reference_tag: referenceTag || null,
       };
 

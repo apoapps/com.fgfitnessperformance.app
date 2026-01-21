@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui';
 import { VideoPlayer, ExerciseInfo } from '@/components/exercise';
+import { QuestionButton } from '@/components/chat';
 import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/utils/supabase';
 import type { Exercise } from '@/types/workout';
@@ -209,56 +210,56 @@ export default function ExerciseDetailScreen() {
         backgroundColor: colors.background,
       }}
     >
+      {/* Video goes edge-to-edge at the top */}
+      {exercise.video_url && (
+        <VideoPlayer
+          url={exercise.video_url}
+          thumbnailUrl={exercise.thumbnail_url}
+        />
+      )}
+
+      {/* Navigation bar BELOW video (or at top if no video) */}
+      <View
+        style={{
+          paddingTop: exercise.video_url ? 12 : insets.top + 8,
+          paddingHorizontal: 16,
+          paddingBottom: 12,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <Pressable
+          testID="back-button"
+          onPress={() => router.back()}
+          style={({ pressed }) => ({
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
+          <Text variant="body" style={{ fontWeight: '500' }}>Volver</Text>
+        </Pressable>
+
+        <QuestionButton
+          referenceType="exercise"
+          referenceId={exercise.id}
+          referenceTag={`[${exercise.name}]`}
+        />
+      </View>
+
+      {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 20,
         }}
       >
-        {/* Video Hero Section - only if video_url exists */}
-        {exercise.video_url && (
-          <View style={{ paddingTop: insets.top }}>
-            <VideoPlayer
-              url={exercise.video_url}
-              thumbnailUrl={exercise.thumbnail_url}
-            />
-          </View>
-        )}
-
-        {/* Header - positioned over video or at top */}
-        <View
-          style={{
-            position: 'absolute',
-            top: insets.top + 8,
-            left: 8,
-            zIndex: 10,
-          }}
-        >
-          <Pressable
-            testID="close-button"
-            onPress={() => router.back()}
-            style={({ pressed }) => ({
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: pressed
-                ? colors.background + 'EE'
-                : colors.background + 'CC',
-              justifyContent: 'center',
-              alignItems: 'center',
-            })}
-          >
-            <Ionicons name="close" size={24} color={colors.text} />
-          </Pressable>
-        </View>
-
         {/* Exercise Info */}
-        <View
-          style={{
-            padding: 20,
-            paddingTop: exercise.video_url ? 20 : insets.top + 60,
-          }}
-        >
+        <View style={{ padding: 20, paddingTop: 0 }}>
           <ExerciseInfo exercise={exercise} />
         </View>
       </ScrollView>
