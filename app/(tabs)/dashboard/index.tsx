@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Card } from '@/components/ui';
+import { Text, Card, ScreenHeader } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -76,56 +76,50 @@ export default function DashboardScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <View style={{ gap: 4, flex: 1 }}>
-              <Text variant="bodySm" color="textMuted">
-                Bienvenido
-              </Text>
-              <Text variant="hero" style={{ fontSize: 32 }}>
-                {displayName || user?.email?.split('@')[0] || 'Usuario'}
-              </Text>
-              <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
-            </View>
-
-            {/* Notification Bell */}
-            <Pressable
-              testID="notification-button"
-              onPress={() => router.push('/chat')}
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: colors.border,
-              })}
-            >
-              <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.text} />
-              {unreadCount > 0 && (
-                <View
-                  testID="unread-badge"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    minWidth: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    backgroundColor: colors.danger,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    paddingHorizontal: 4,
-                  }}
-                >
-                  <Text variant="caption" style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-          </View>
+          <ScreenHeader
+            title={displayName || user?.email?.split('@')[0] || 'Usuario'}
+            subtitle="Bienvenido"
+            logoSize={32}
+            rightElement={
+              <Pressable
+                testID="notification-button"
+                onPress={() => router.push('/chat')}
+                style={({ pressed }) => ({
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                })}
+              >
+                <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.text} />
+                {unreadCount > 0 && (
+                  <View
+                    testID="unread-badge"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      backgroundColor: colors.danger,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      paddingHorizontal: 4,
+                    }}
+                  >
+                    <Text variant="caption" style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            }
+          />
 
           {/* Quick Actions */}
           <View style={{ flexDirection: 'row', gap: 12 }}>

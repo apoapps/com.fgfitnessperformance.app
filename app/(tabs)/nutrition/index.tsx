@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Button, Card } from '@/components/ui';
+import { Text, Button, Card, ScreenHeader } from '@/components/ui';
 import { QuestionButton } from '@/components/chat';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNutrition } from '@/contexts/NutritionContext';
@@ -310,12 +310,7 @@ export default function NutritionScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
           {/* Header */}
-          <View style={{ gap: 4, marginBottom: 24 }}>
-            <Text variant="hero" style={{ fontSize: 32 }}>
-              Nutrición
-            </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
-          </View>
+          <ScreenHeader title="Nutrición" logoSize={28} style={{ marginBottom: 24 }} />
 
           {/* Empty State */}
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
@@ -350,12 +345,7 @@ export default function NutritionScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <View style={{ gap: 4 }}>
-            <Text variant="hero" style={{ fontSize: 32 }}>
-              Nutrición
-            </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
-          </View>
+          <ScreenHeader title="Nutrición" logoSize={28} />
 
           {/* Macro Chart */}
           {macros && (

@@ -19,7 +19,7 @@ export const colors = {
     primary: '#ffd801',
     primaryDim: 'rgba(255, 216, 1, 0.15)',
     primaryDark: '#b39700',
-    primaryLight: '#ffeb3b',
+    primaryLight: '#ffd801',
 
     // Typography
     text: '#ffffff',
@@ -70,16 +70,16 @@ export const colors = {
     surfaceHighlight: '#f4f4f5',
     surfaceElevated: '#e4e4e7',
 
-    primary: '#ca8a04',
+    primary: '#ffd801',
     primaryDim: 'rgba(202, 138, 4, 0.12)',
     primaryDark: '#a16207',
-    primaryLight: '#facc15',
+    primaryLight: '#ffd801',
 
     text: '#09090b',
     textSecondary: '#27272a',
     textMuted: '#71717a',
     textDisabled: '#a1a1aa',
-    textOnPrimary: '#ffffff',
+    textOnPrimary: '#000000',
     textInverse: '#ffffff',
 
     border: '#e4e4e7',
@@ -101,7 +101,7 @@ export const colors = {
     blurIntensity: 60,
 
     shadowColor: '#71717a',
-    glowColor: '#ca8a04',
+    glowColor: '#ffd801',
 
     overlayDark: 'rgba(0, 0, 0, 0.5)',
     overlayLight: 'rgba(255, 255, 255, 0.8)',
@@ -197,7 +197,7 @@ export const shadows = {
     elevation: 4,
   },
   neonLight: {
-    shadowColor: '#ca8a04',
+    shadowColor: '#ffd801',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 16,

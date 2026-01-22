@@ -210,12 +210,14 @@ export default function ExerciseDetailScreen() {
         backgroundColor: colors.background,
       }}
     >
-      {/* Video goes edge-to-edge at the top */}
+      {/* Video with safe area padding for notch/Dynamic Island */}
       {exercise.video_url && (
-        <VideoPlayer
-          url={exercise.video_url}
-          thumbnailUrl={exercise.thumbnail_url}
-        />
+        <View style={{ paddingTop: insets.top, backgroundColor: '#000' }}>
+          <VideoPlayer
+            url={exercise.video_url}
+            thumbnailUrl={exercise.thumbnail_url}
+          />
+        </View>
       )}
 
       {/* Navigation bar BELOW video (or at top if no video) */}

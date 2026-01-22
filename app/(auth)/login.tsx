@@ -4,16 +4,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Text, Button, Card, Input } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Logos - horizontal with text (already includes "FG Fitness Performance" text)
+const LogoHBlanco = require('../../assets/logo-h-blanco.svg');
+const LogoHNegro = require('../../assets/logo-h-negro.svg');
+
 export default function LoginScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { signIn, isAuthenticated, isLoading, error, clearError } = useAuth();
   const router = useRouter();
 
@@ -56,28 +60,18 @@ export default function LoginScreen() {
           }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+          {/* Header with Logo */}
+          {/* logo-h aspect ratio is 660:131 (≈5:1) */}
           <View style={{ alignItems: 'center', marginBottom: 48 }}>
-            {/* Logo placeholder */}
-            <View
+            <Image
+              source={isDark ? LogoHBlanco : LogoHNegro}
               style={{
-                width: 80,
-                height: 80,
-                backgroundColor: colors.primary,
-                borderRadius: 16,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: 24,
+                width: 300,
+                aspectRatio: 660 / 131,
+                marginBottom: 16,
               }}
-            >
-              <Text variant="hero" color="textOnPrimary" style={{ fontSize: 32 }}>
-                FG
-              </Text>
-            </View>
-
-            <Text variant="titleLg" uppercase>
-              FG Fitness
-            </Text>
+              contentFit="contain"
+            />
             <View
               style={{
                 width: 48,
@@ -86,9 +80,6 @@ export default function LoginScreen() {
                 marginTop: 8,
               }}
             />
-            <Text variant="body" color="textMuted" style={{ marginTop: 8 }}>
-              Performance
-            </Text>
           </View>
 
           {/* Login Form */}

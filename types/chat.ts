@@ -5,11 +5,19 @@ export type ChatReferenceType = 'workout' | 'nutrition' | 'exercise' | 'meal' | 
 
 export type ChatSenderType = 'client' | 'coach';
 
+export interface AssignedStaff {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
 export interface ChatMessage {
   id: string;
   thread_id: string;
   sender_id: string;
   sender_type: ChatSenderType;
+  sender_name?: string;
+  sender_avatar?: string;
   content: string;
   image_url?: string;
   reference_tag?: string; // "[Día 3 - Push Day]" or "[Almuerzo - 13:00]"
@@ -22,6 +30,8 @@ export interface ChatMessage {
 export interface ChatThread {
   id: string;
   client_id: string;
+  assigned_staff_id?: string;
+  assigned_staff?: AssignedStaff;
   last_message_at?: string;
   unread_count_client: number;
   unread_count_coach: number;
@@ -35,6 +45,11 @@ export interface ChatMessageRow {
   thread_id: string;
   sender_id: string;
   sender_type: ChatSenderType;
+  sender: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
   content: string;
   image_url: string | null;
   reference_tag: string | null;
@@ -47,6 +62,12 @@ export interface ChatMessageRow {
 export interface ChatThreadRow {
   id: string;
   client_id: string;
+  assigned_staff_id: string | null;
+  assigned_staff: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
   last_message_at: string | null;
   unread_count_client: number;
   unread_count_coach: number;
@@ -61,6 +82,8 @@ export function chatMessageFromRow(row: ChatMessageRow): ChatMessage {
     thread_id: row.thread_id,
     sender_id: row.sender_id,
     sender_type: row.sender_type,
+    sender_name: row.sender?.full_name ?? undefined,
+    sender_avatar: row.sender?.avatar_url ?? undefined,
     content: row.content,
     image_url: row.image_url ?? undefined,
     reference_tag: row.reference_tag ?? undefined,
@@ -75,6 +98,8 @@ export function chatThreadFromRow(row: ChatThreadRow): ChatThread {
   return {
     id: row.id,
     client_id: row.client_id,
+    assigned_staff_id: row.assigned_staff_id ?? undefined,
+    assigned_staff: row.assigned_staff ?? undefined,
     last_message_at: row.last_message_at ?? undefined,
     unread_count_client: row.unread_count_client,
     unread_count_coach: row.unread_count_coach,

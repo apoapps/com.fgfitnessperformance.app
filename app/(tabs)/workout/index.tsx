@@ -1,8 +1,12 @@
 import React, { useMemo } from 'react';
 import { View, ScrollView, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Text, Button } from '@/components/ui';
+import { Text, Button, MeshGradientBanner, ScreenHeader } from '@/components/ui';
+
+// Mini logo for banner (always white on the gradient background)
+const MiniLogoBlanco = require('../../../assets/mini-logo-blanco.svg');
 import { QuestionButton } from '@/components/chat';
 import { DaySelector, ObjectiveCard, WorkoutBlock } from '@/components/workout';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -106,12 +110,7 @@ export default function WorkoutScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}>
           {/* Header */}
-          <View style={{ gap: 4, marginBottom: 24 }}>
-            <Text variant="hero" style={{ fontSize: 32 }}>
-              Entrenamiento
-            </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
-          </View>
+          <ScreenHeader title="Entrenamiento" logoSize={28} style={{ marginBottom: 24 }} />
 
           {/* Empty State */}
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
@@ -150,24 +149,20 @@ export default function WorkoutScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Hero Header with Plan Title and Goal */}
-        <View
-          style={{
-            minHeight: 140,
-            backgroundColor: colors.surfaceHighlight,
-            justifyContent: 'flex-end',
-            padding: 20,
-            marginBottom: 20,
-          }}
+        {/* Hero Header with Plan Title and Goal - Mesh Gradient Background */}
+        <MeshGradientBanner
+          height={workoutPlan.goal ? 160 : 120}
+          style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 20 }}
         >
           {/* Header buttons */}
           <View
             style={{
               position: 'absolute',
-              top: 16,
-              right: 16,
+              top: 12,
+              right: 12,
               flexDirection: 'row',
               gap: 8,
+              zIndex: 10,
             }}
           >
             <QuestionButton
@@ -177,29 +172,45 @@ export default function WorkoutScreen() {
             />
           </View>
 
-          {/* Plan Title */}
-          <Text
-            variant="hero"
-            style={{
-              fontSize: 24,
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            {workoutPlan.title}
-          </Text>
+          {/* Plan Title with Logo */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Image
+              source={MiniLogoBlanco}
+              style={{ width: 32, height: 24 }}
+              contentFit="contain"
+            />
+            <Text
+              variant="hero"
+              style={{
+                fontSize: 22,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
+                flex: 1,
+              }}
+            >
+              {workoutPlan.title}
+            </Text>
+          </View>
 
           {/* Plan Goal */}
           {workoutPlan.goal && (
             <Text
               variant="body"
-              color="textMuted"
-              style={{ marginTop: 8 }}
+              style={{
+                marginTop: 8,
+                opacity: 0.9,
+                textShadowColor: 'rgba(0, 0, 0, 0.2)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 2,
+              }}
             >
               {workoutPlan.goal}
             </Text>
           )}
-        </View>
+        </MeshGradientBanner>
 
         {/* Main Content */}
         <View style={{ paddingHorizontal: 20 }}>

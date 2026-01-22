@@ -10,10 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fgfitnessperformance.app"
+      "bundleIdentifier": "com.apoapps.fgfitnessperformance"
     },
     "android": {
-      "package": "com.fgfitnessperformance.app",
+      "package": "com.apoapps.fgfitnessperformance",
       "adaptiveIcon": {
         "backgroundColor": "#09090b",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -33,11 +33,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash-icon-light.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#09090b",
+          "backgroundColor": "#fafafa",
           "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
             "backgroundColor": "#09090b"
           }
         }

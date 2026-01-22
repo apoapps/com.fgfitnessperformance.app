@@ -59,10 +59,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
     if (!user?.id) return null;
 
     try {
-      // First try to get existing thread
+      // First try to get existing thread with assigned staff info
       const { data: existingThread, error: fetchError } = await supabase
         .from('chat_threads')
-        .select('*')
+        .select('*, assigned_staff:profiles!chat_threads_assigned_staff_id_profiles_fkey(id, full_name, avatar_url)')
         .eq('client_id', user.id)
         .single();
 
@@ -77,7 +77,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       const { data: newThread, error: insertError } = await supabase
         .from('chat_threads')
         .insert({ client_id: user.id })
-        .select()
+        .select('*, assigned_staff:profiles!chat_threads_assigned_staff_id_profiles_fkey(id, full_name, avatar_url)')
         .single();
 
       if (insertError) {
@@ -113,7 +113,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
       const { data, error: fetchError } = await supabase
         .from('chat_messages')
-        .select('*')
+        .select(`
+          *,
+          sender:profiles!sender_id(id, full_name, avatar_url)
+        `)
         .eq('thread_id', threadId)
         .order('created_at', { ascending: true });
 
@@ -153,8 +156,20 @@ export function ChatProvider({ children }: ChatProviderProps) {
           table: 'chat_messages',
           filter: `thread_id=eq.${thread.id}`,
         },
-        (payload) => {
-          const newMessage = chatMessageFromRow(payload.new as ChatMessageRow);
+        async (payload) => {
+          // Fetch sender info for the new message
+          const { data: sender } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .eq('id', (payload.new as { sender_id: string }).sender_id)
+            .single();
+
+          const messageWithSender = {
+            ...payload.new,
+            sender,
+          } as ChatMessageRow;
+
+          const newMessage = chatMessageFromRow(messageWithSender);
           setMessages((prev) => {
             // Avoid duplicates - check by ID or by temp ID (optimistic messages)
             const isDuplicate = prev.some((m) =>
@@ -191,10 +206,30 @@ export function ChatProvider({ children }: ChatProviderProps) {
           table: 'chat_threads',
           filter: `id=eq.${thread.id}`,
         },
-        (payload) => {
-          const updatedThread = chatThreadFromRow(payload.new as ChatThreadRow);
-          setThread(updatedThread);
-          setUnreadCount(updatedThread.unread_count_client);
+        async (payload) => {
+          const rawThread = payload.new as { assigned_staff_id?: string | null; unread_count_client?: number };
+          // If assigned_staff_id changed, re-fetch to get staff profile info
+          if (rawThread.assigned_staff_id !== thread.assigned_staff_id) {
+            const { data: refreshedThread } = await supabase
+              .from('chat_threads')
+              .select('*, assigned_staff:profiles!chat_threads_assigned_staff_id_profiles_fkey(id, full_name, avatar_url)')
+              .eq('id', thread.id)
+              .single();
+            if (refreshedThread) {
+              const updatedThread = chatThreadFromRow(refreshedThread as ChatThreadRow);
+              setThread(updatedThread);
+              setUnreadCount(updatedThread.unread_count_client);
+              return;
+            }
+          }
+          // Otherwise just update with basic fields from payload
+          setThread((prev) => prev ? {
+            ...prev,
+            unread_count_client: rawThread.unread_count_client ?? prev.unread_count_client,
+          } : prev);
+          if (rawThread.unread_count_client !== undefined) {
+            setUnreadCount(rawThread.unread_count_client);
+          }
         }
       )
       .subscribe();
@@ -207,7 +242,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         channelRef.current = null;
       }
     };
-  }, [thread?.id]);
+  }, [thread?.id, thread?.assigned_staff_id]);
 
   // Send a message
   const sendMessage = useCallback(

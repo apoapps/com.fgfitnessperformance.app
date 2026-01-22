@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Button, Card } from '@/components/ui';
+import { Text, Button, Card, ScreenHeader } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -81,14 +81,9 @@ export default function ProfileScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <View style={{ gap: 4 }}>
-            <Text variant="hero" style={{ fontSize: 32 }}>
-              Perfil
-            </Text>
-            <View style={{ width: 48, height: 4, backgroundColor: colors.primary, marginTop: 8 }} />
-          </View>
+          <ScreenHeader title="Perfil" logoSize={28} />
 
-        {/* Avatar & Name Card */}
+          {/* Avatar & Name Card */}
         <Card variant="glass">
           <View style={{ alignItems: 'center', padding: 20, gap: 16 }}>
             {/* Avatar */}

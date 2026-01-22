@@ -9,6 +9,7 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,8 +19,12 @@ import { Text } from '@/components/ui/Text';
 import { ChatBubble } from '@/components/chat';
 import type { ChatMessage, ChatReferenceType } from '@/types/chat';
 
+// Mini logos for header
+const MiniLogoBlanco = require('../../assets/mini-logo-blanco.svg');
+const MiniLogoNegro = require('../../assets/mini-logo-negro.svg');
+
 export default function ChatScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { referenceType, referenceId, referenceTag } = useLocalSearchParams<{
@@ -27,7 +32,7 @@ export default function ChatScreen() {
     referenceId?: string;
     referenceTag?: string;
   }>();
-  const { messages, sendMessage, loadMessages, markAsRead, unreadCount } = useChat();
+  const { messages, thread, sendMessage, loadMessages, markAsRead, unreadCount } = useChat();
   const [inputText, setInputText] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [activeReference, setActiveReference] = useState<{
@@ -131,13 +136,22 @@ export default function ChatScreen() {
           >
             <Ionicons name="close" size={24} color={colors.text} />
           </Pressable>
-          <View>
-            <Text variant="title" style={styles.headerTitle}>
-              Chat con Coach
-            </Text>
-            <Text variant="caption" color="textMuted">
-              Pregunta tus dudas
-            </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+            <Image
+              source={isDark ? MiniLogoBlanco : MiniLogoNegro}
+              style={{ width: 32, height: 24 }}
+              contentFit="contain"
+            />
+            <View style={{ flex: 1 }}>
+              <Text variant="title" style={styles.headerTitle}>
+                Chat con Coach
+              </Text>
+              <Text variant="caption" color="textMuted">
+                {thread?.assigned_staff?.full_name
+                  ? `Te atiende: ${thread.assigned_staff.full_name}`
+                  : 'Pregunta tus dudas'}
+              </Text>
+            </View>
           </View>
         </View>
       </View>

@@ -28,6 +28,16 @@ export function ChatBubble({ message }: ChatBubbleProps) {
         isUser ? styles.userContainer : styles.coachContainer,
       ]}
     >
+      {/* Show sender name for coach messages */}
+      {message.sender_type === 'coach' && message.sender_name && (
+        <Text
+          variant="caption"
+          style={[styles.senderName, { color: colors.textMuted }]}
+        >
+          {message.sender_name}
+        </Text>
+      )}
+
       <View
         style={[
           styles.bubble,
@@ -101,6 +111,12 @@ const styles = StyleSheet.create({
   },
   coachContainer: {
     alignSelf: 'flex-start',
+  },
+  senderName: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 2,
+    marginLeft: 4,
   },
   bubble: {
     paddingHorizontal: 14,
