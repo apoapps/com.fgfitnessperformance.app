@@ -1,0 +1,404 @@
+{
+  "version": "1.0",
+  "name": "Dashboard Screen - Light Mode",
+  "description": "El Hub - Pantalla principal del dashboard en modo claro",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "deviceType": "mobile"
+  },
+  "theme": {
+    "mode": "light",
+    "colors": {
+      "background": "#fafafa",
+      "surface": "#ffffff",
+      "primary": "#ca8a04",
+      "text": "#09090b",
+      "textMuted": "#71717a",
+      "border": "#e4e4e7",
+      "danger": "#ef4444"
+    },
+    "typography": {
+      "heading": "Oswald",
+      "body": "Inter"
+    }
+  },
+  "elements": [
+    {
+      "type": "container",
+      "id": "screen",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#fafafa"
+      },
+      "children": [
+        {
+          "type": "container",
+          "id": "content",
+          "style": {
+            "padding": 20,
+            "paddingTop": 60,
+            "gap": 24
+          },
+          "children": [
+            {
+              "type": "container",
+              "id": "header",
+              "style": {
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "alignItems": "center"
+              },
+              "children": [
+                {
+                  "type": "container",
+                  "id": "user-info",
+                  "style": {
+                    "gap": 4
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "subtitle",
+                      "content": "Bienvenido",
+                      "style": {
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "color": "#71717a"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "user-name",
+                      "content": "ALEX",
+                      "style": {
+                        "fontFamily": "Oswald",
+                        "fontSize": 28,
+                        "fontWeight": "700",
+                        "color": "#09090b",
+                        "letterSpacing": 1
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "button",
+                  "id": "chat-button",
+                  "icon": "chatbubble-ellipses-outline",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "position": "relative"
+                  },
+                  "children": [
+                    {
+                      "type": "badge",
+                      "id": "unread-badge",
+                      "content": "3",
+                      "style": {
+                        "position": "absolute",
+                        "top": 0,
+                        "right": 0,
+                        "minWidth": 18,
+                        "height": 18,
+                        "borderRadius": 9,
+                        "backgroundColor": "#ef4444",
+                        "color": "#ffffff",
+                        "fontSize": 10,
+                        "fontWeight": "700"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "id": "quick-actions",
+              "style": {
+                "flexDirection": "row",
+                "gap": 12
+              },
+              "children": [
+                {
+                  "type": "card",
+                  "id": "action-workout",
+                  "style": {
+                    "flex": 1,
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "padding": 16,
+                    "alignItems": "center",
+                    "gap": 8,
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "content": "🏋️",
+                      "style": {"fontSize": 24}
+                    },
+                    {
+                      "type": "text",
+                      "content": "Entreno",
+                      "style": {
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "color": "#71717a"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "card",
+                  "id": "action-nutrition",
+                  "style": {
+                    "flex": 1,
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "padding": 16,
+                    "alignItems": "center",
+                    "gap": 8,
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "content": "🥗",
+                      "style": {"fontSize": 24}
+                    },
+                    {
+                      "type": "text",
+                      "content": "Nutrición",
+                      "style": {
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "color": "#71717a"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "card",
+                  "id": "action-profile",
+                  "style": {
+                    "flex": 1,
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "padding": 16,
+                    "alignItems": "center",
+                    "gap": 8,
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "content": "👤",
+                      "style": {"fontSize": 24}
+                    },
+                    {
+                      "type": "text",
+                      "content": "Perfil",
+                      "style": {
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "color": "#71717a"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "id": "next-workout-section",
+              "style": {
+                "gap": 12
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "id": "section-label",
+                  "content": "PRÓXIMO ENTRENAMIENTO",
+                  "style": {
+                    "fontFamily": "Inter",
+                    "fontSize": 12,
+                    "fontWeight": "600",
+                    "color": "#71717a",
+                    "letterSpacing": 1
+                  }
+                },
+                {
+                  "type": "card",
+                  "id": "next-workout-card",
+                  "style": {
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "padding": 20,
+                    "gap": 16,
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "shadowColor": "#000",
+                    "shadowOpacity": 0.05,
+                    "shadowRadius": 10,
+                    "shadowOffset": {"x": 0, "y": 4}
+                  },
+                  "children": [
+                    {
+                      "type": "container",
+                      "id": "workout-header",
+                      "style": {
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "content": "Día 3 • Semana 2",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontSize": 12,
+                            "color": "#71717a"
+                          }
+                        },
+                        {
+                          "type": "badge",
+                          "content": "HOY",
+                          "style": {
+                            "backgroundColor": "#ca8a04",
+                            "paddingHorizontal": 10,
+                            "paddingVertical": 4,
+                            "borderRadius": 8,
+                            "fontFamily": "Inter",
+                            "fontSize": 12,
+                            "fontWeight": "700",
+                            "color": "#fafafa"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "workout-name",
+                      "content": "Full Body Power",
+                      "style": {
+                        "fontFamily": "Oswald",
+                        "fontSize": 20,
+                        "fontWeight": "700",
+                        "color": "#09090b"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "workout-objective",
+                      "content": "Desarrollar fuerza máxima en movimientos compuestos",
+                      "style": {
+                        "fontFamily": "Inter",
+                        "fontSize": 14,
+                        "color": "#71717a"
+                      }
+                    },
+                    {
+                      "type": "container",
+                      "id": "workout-footer",
+                      "style": {
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "content": "4 bloques",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontSize": 14,
+                            "color": "#71717a"
+                          }
+                        },
+                        {
+                          "type": "button",
+                          "content": "INICIAR →",
+                          "style": {
+                            "backgroundColor": "#ca8a04",
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 8,
+                            "borderRadius": 20,
+                            "fontFamily": "Inter",
+                            "fontSize": 14,
+                            "fontWeight": "600",
+                            "color": "#fafafa"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "tabbar",
+          "id": "bottom-tabs",
+          "style": {
+            "position": "absolute",
+            "bottom": 20,
+            "left": 20,
+            "right": 20,
+            "height": 60,
+            "backgroundColor": "#ffffff",
+            "borderRadius": 30,
+            "flexDirection": "row",
+            "justifyContent": "space-around",
+            "alignItems": "center",
+            "borderWidth": 1,
+            "borderColor": "#e4e4e7",
+            "shadowColor": "#000",
+            "shadowOpacity": 0.1,
+            "shadowRadius": 20,
+            "shadowOffset": {"x": 0, "y": 8}
+          },
+          "children": [
+            {
+              "type": "tab",
+              "id": "tab-dashboard",
+              "icon": "home",
+              "active": true,
+              "style": {"color": "#ca8a04"}
+            },
+            {
+              "type": "tab",
+              "id": "tab-workout",
+              "icon": "barbell",
+              "style": {"color": "#71717a"}
+            },
+            {
+              "type": "tab",
+              "id": "tab-nutrition",
+              "icon": "nutrition",
+              "style": {"color": "#71717a"}
+            },
+            {
+              "type": "tab",
+              "id": "tab-profile",
+              "icon": "person",
+              "style": {"color": "#71717a"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

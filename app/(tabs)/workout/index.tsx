@@ -1,16 +1,18 @@
-import React, { useMemo } from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
-import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Text, Button, MeshGradientBanner, ScreenHeader } from '@/components/ui';
-
-// Mini logo for banner (always white on the gradient background)
-const MiniLogoBlanco = require('../../../assets/mini-logo-blanco.svg');
 import { QuestionButton } from '@/components/chat';
+import { Button, ScreenHeader, Text } from '@/components/ui';
 import { DaySelector, ObjectiveCard, WorkoutBlock } from '@/components/workout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import React, { useMemo } from 'react';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+
+// Mini logos - adapt to theme
+const MiniLogoBlanco = require('../../../assets/mini-logo-blanco.svg');
+const MiniLogoNegro = require('../../../assets/mini-logo-negro.svg');
 
 // Get block label (A, B, C, etc.)
 function getBlockLabel(index: number): string {
@@ -26,7 +28,7 @@ function isRestDay(dayName: string, blocksCount: number): boolean {
 }
 
 export default function WorkoutScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const {
     workoutPlan,
@@ -37,6 +39,7 @@ export default function WorkoutScreen() {
     getCurrentDay,
     getTotalDays,
     getWeekForDay,
+    getAllDays,
     refreshWorkouts,
   } = useWorkout();
 
@@ -44,6 +47,7 @@ export default function WorkoutScreen() {
   const currentDay = useMemo(() => getCurrentDay(), [getCurrentDay]);
   const currentWeek = useMemo(() => getWeekForDay(selectedDay), [getWeekForDay, selectedDay]);
   const totalDays = useMemo(() => getTotalDays(), [getTotalDays]);
+  const allDays = useMemo(() => getAllDays(), [getAllDays]);
 
   // Calculate today's day number based on start date
   const todayDayNumber = useMemo(() => {
@@ -149,11 +153,7 @@ export default function WorkoutScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Hero Header with Plan Title and Goal - Mesh Gradient Background */}
-        <MeshGradientBanner
-          height={workoutPlan.goal ? 160 : 120}
-          style={{ marginHorizontal: 16, marginTop: 8, marginBottom: 20 }}
-        >
+     
           {/* Header buttons */}
           <View
             style={{
@@ -173,65 +173,76 @@ export default function WorkoutScreen() {
           </View>
 
           {/* Plan Title with Logo */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Image
-              source={MiniLogoBlanco}
-              style={{ width: 32, height: 24 }}
-              contentFit="contain"
-            />
-            <Text
-              variant="hero"
-              style={{
-                fontSize: 22,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                textShadowColor: 'rgba(0, 0, 0, 0.3)',
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 3,
-                flex: 1,
-              }}
-            >
-              {workoutPlan.title}
-            </Text>
-          </View>
+          <Animated.View
+            style={{ paddingHorizontal: 20, paddingTop: 16 }}
+            entering={FadeIn.duration(300)}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Image
+                source={isDark ? MiniLogoBlanco : MiniLogoNegro}
+                style={{ width: 32, height: 24 }}
+                contentFit="contain"
+              />
+              <Text
+                variant="hero"
+                style={{
+                  fontSize: 22,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 3,
+                  flex: 1,
+                }}
+              >
+                {workoutPlan.title}
+              </Text>
+            </View>
 
-          {/* Plan Goal */}
-          {workoutPlan.goal && (
-            <Text
-              variant="body"
-              style={{
-                marginTop: 8,
-                opacity: 0.9,
-                textShadowColor: 'rgba(0, 0, 0, 0.2)',
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 2,
-              }}
-            >
-              {workoutPlan.goal}
-            </Text>
-          )}
-        </MeshGradientBanner>
+            {/* Plan Goal */}
+            {workoutPlan.goal && (
+              <Text
+                variant="body"
+                style={{
+                  marginTop: 8,
+                  opacity: 0.9,
+                  textShadowColor: 'rgba(0, 0, 0, 0.2)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
+                }}
+              >
+                {workoutPlan.goal}
+              </Text>
+            )}
+          </Animated.View>
 
         {/* Main Content */}
         <View style={{ paddingHorizontal: 20 }}>
           {/* Day Selector */}
-          <DaySelector
-            totalDays={totalDays}
-            selectedDay={selectedDay}
-            onSelectDay={setSelectedDay}
-            todayDay={todayDayNumber}
-          />
+          <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+            <DaySelector
+              days={allDays}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+              todayDay={todayDayNumber}
+            />
+          </Animated.View>
 
           {/* Day content */}
           {currentDay && (
             <>
               {/* Day-specific Objective Card */}
-              {currentDay.objective && <ObjectiveCard objective={currentDay.objective} />}
+              {currentDay.objective && (
+                <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+                  <ObjectiveCard objective={currentDay.objective} />
+                </Animated.View>
+              )}
 
               {/* Rest Day State */}
               {isRest ? (
-                <View
+                <Animated.View
                   testID="rest-day-content"
+                  entering={FadeInDown.delay(200).duration(400)}
                   style={{
                     backgroundColor: colors.surface,
                     borderRadius: 12,
@@ -258,17 +269,21 @@ export default function WorkoutScreen() {
                   <Text variant="body" color="textMuted" style={{ textAlign: 'center' }}>
                     Aprovecha para recuperarte. Hidratacion y buen descanso.
                   </Text>
-                </View>
+                </Animated.View>
               ) : (
                 /* Workout Blocks */
                 <View testID="workout-blocks">
                   {currentDay.blocks.map((block, index) => (
-                    <WorkoutBlock
+                    <Animated.View
                       key={block.id}
-                      block={block}
-                      blockLabel={getBlockLabel(index)}
-                      onExercisePress={handleExercisePress}
-                    />
+                      entering={FadeInDown.delay(200 + index * 80).duration(400)}
+                    >
+                      <WorkoutBlock
+                        block={block}
+                        blockLabel={getBlockLabel(index)}
+                        onExercisePress={handleExercisePress}
+                      />
+                    </Animated.View>
                   ))}
                 </View>
               )}

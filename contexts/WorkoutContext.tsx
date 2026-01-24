@@ -16,6 +16,7 @@ interface WorkoutContextType {
   getCurrentDay: () => WorkoutDay | null;
   getTotalDays: () => number;
   getWeekForDay: (dayNumber: number) => WorkoutWeek | null;
+  getAllDays: () => WorkoutDay[];
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -99,6 +100,12 @@ export function WorkoutProvider({ children }: WorkoutProviderProps) {
     return workoutPlan.structure.weeks.reduce((total, week) => total + week.days.length, 0);
   }, [workoutPlan]);
 
+  // Get all days across all weeks (flattened)
+  const getAllDays = useCallback((): WorkoutDay[] => {
+    if (!workoutPlan?.structure?.weeks) return [];
+    return workoutPlan.structure.weeks.flatMap(week => week.days);
+  }, [workoutPlan]);
+
   // Get a specific day from a specific week
   const getDayForWeek = useCallback(
     (weekNumber: number, dayNumber: number): WorkoutDay | null => {
@@ -174,6 +181,7 @@ export function WorkoutProvider({ children }: WorkoutProviderProps) {
       getCurrentDay,
       getTotalDays,
       getWeekForDay,
+      getAllDays,
     }),
     [
       workoutPlan,
@@ -187,6 +195,7 @@ export function WorkoutProvider({ children }: WorkoutProviderProps) {
       getCurrentDay,
       getTotalDays,
       getWeekForDay,
+      getAllDays,
     ]
   );
 

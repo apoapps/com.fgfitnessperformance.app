@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Button, Card, ScreenHeader } from '@/components/ui';
 import { QuestionButton } from '@/components/chat';
-import { useTheme } from '@/contexts/ThemeContext';
+import { Button, Card, ScreenHeader, Text } from '@/components/ui';
+import { CompactMacroBar } from '@/components/nutrition/CompactMacroBar';
 import { useNutrition } from '@/contexts/NutritionContext';
-import type { NutritionMeal, NutritionDocument } from '@/types/nutrition';
+import { useTheme } from '@/contexts/ThemeContext';
+import type { NutritionDocument, NutritionMeal } from '@/types/nutrition';
+import React from 'react';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 interface MacroStatProps {
   label: string;
@@ -118,7 +120,7 @@ function MacroChart({ calories, protein, carbs, fat, percentages }: MacroChartPr
             percentage={percentages.protein}
           />
           <MacroStat
-            label="Carbos"
+            label="Carbohidratos"
             value={carbs}
             unit="g"
             color={carbsColor}
@@ -345,47 +347,16 @@ export default function NutritionScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <ScreenHeader title="Nutrición" logoSize={28} />
+          <Animated.View entering={FadeIn.duration(300)}>
+            <ScreenHeader title="FG Nutrition Plan" logoSize={28} />
+          </Animated.View>
 
-          {/* Macro Chart */}
+          {/* Compact Macro Bar with Water */}
           {macros && (
-            <MacroChart
-              calories={macros.calories}
-              protein={macros.protein}
-              carbs={macros.carbs}
-              fat={macros.fat}
-              percentages={percentages}
-            />
+            <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+              <CompactMacroBar macros={macros} waterTarget={waterTarget} />
+            </Animated.View>
           )}
-
-          {/* Water Target */}
-          <Card variant="glass">
-            <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: '#3b82f6' + '20',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Text variant="title" style={{ color: '#3b82f6' }}>
-                  💧
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text variant="body">Objetivo de Agua</Text>
-                <Text variant="bodySm" color="textMuted">
-                  Mantente hidratado durante el día
-                </Text>
-              </View>
-              <Text variant="title">
-                {waterTarget} litros
-              </Text>
-            </View>
-          </Card>
 
           {/* Meals Section */}
           {meals.length > 0 && (
@@ -393,15 +364,23 @@ export default function NutritionScreen() {
               <Text variant="caption" color="textMuted" uppercase>
                 Comidas del Día
               </Text>
-              {meals.map((meal) => (
-                <MealCard key={meal.meal_instance_id || meal.name} meal={meal} />
+              {meals.map((meal, index) => (
+                <Animated.View
+                  key={meal.meal_instance_id || meal.name}
+                  entering={FadeInDown.delay(200 + index * 50).duration(400)}
+                >
+                  <MealCard meal={meal} />
+                </Animated.View>
               ))}
             </View>
           )}
 
           {/* Documents Section */}
           {documents.length > 0 && (
-            <View style={{ gap: 12 }}>
+            <Animated.View
+              style={{ gap: 12 }}
+              entering={FadeInDown.delay(200 + meals.length * 50).duration(400)}
+            >
               <Text variant="caption" color="textMuted" uppercase>
                 Documentos
               </Text>
@@ -412,12 +391,15 @@ export default function NutritionScreen() {
                   ))}
                 </View>
               </Card>
-            </View>
+            </Animated.View>
           )}
 
           {/* Coach Notes */}
           {activePlan.coach_notes && (
-            <View style={{ gap: 8 }}>
+            <Animated.View
+              style={{ gap: 8 }}
+              entering={FadeInDown.delay(250 + meals.length * 50).duration(400)}
+            >
               <Text variant="caption" color="textMuted" uppercase>
                 Notas del Coach
               </Text>
@@ -428,7 +410,7 @@ export default function NutritionScreen() {
                   </Text>
                 </View>
               </Card>
-            </View>
+            </Animated.View>
           )}
         </View>
       </ScrollView>

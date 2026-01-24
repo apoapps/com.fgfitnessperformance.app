@@ -5,6 +5,7 @@ import { Text, Button, Card, ScreenHeader } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
@@ -81,10 +82,13 @@ export default function ProfileScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <ScreenHeader title="Perfil" logoSize={28} />
+          <Animated.View entering={FadeIn.duration(300)}>
+            <ScreenHeader title="Perfil" logoSize={28} />
+          </Animated.View>
 
           {/* Avatar & Name Card */}
-        <Card variant="glass">
+        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+          <Card variant="glass">
           <View style={{ alignItems: 'center', padding: 20, gap: 16 }}>
             {/* Avatar */}
             {avatarUrl ? (
@@ -161,9 +165,11 @@ export default function ProfileScreen() {
             </View>
           </View>
         </Card>
+        </Animated.View>
 
         {/* Access Tags */}
-        <Card variant="glass">
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <Card variant="glass">
           <View style={{ padding: 16, gap: 12 }}>
             <Text variant="caption" color="textMuted" uppercase>
               Acceso
@@ -229,41 +235,47 @@ export default function ProfileScreen() {
             </View>
           </View>
         </Card>
+        </Animated.View>
 
         {/* Account Info */}
-        <Card variant="glass">
-          <View style={{ padding: 16, gap: 12 }}>
-            <Text variant="caption" color="textMuted" uppercase>
-              Cuenta
-            </Text>
-            <View style={{ gap: 8 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text variant="bodySm" color="textMuted">Miembro desde</Text>
-                <Text variant="bodySm">
-                  {profile?.created_at
-                    ? new Date(profile.created_at).toLocaleDateString('es-MX', {
-                        year: 'numeric',
-                        month: 'long',
-                      })
-                    : '-'}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text variant="bodySm" color="textMuted">Estado</Text>
-                <Text variant="bodySm">{profile?.user_status || '-'}</Text>
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+          <Card variant="glass">
+            <View style={{ padding: 16, gap: 12 }}>
+              <Text variant="caption" color="textMuted" uppercase>
+                Cuenta
+              </Text>
+              <View style={{ gap: 8 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text variant="bodySm" color="textMuted">Miembro desde</Text>
+                  <Text variant="bodySm">
+                    {profile?.created_at
+                      ? new Date(profile.created_at).toLocaleDateString('es-MX', {
+                          year: 'numeric',
+                          month: 'long',
+                        })
+                      : '-'}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text variant="bodySm" color="textMuted">Estado</Text>
+                  <Text variant="bodySm">{profile?.user_status || '-'}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        </Card>
+          </Card>
+        </Animated.View>
 
           {/* Logout Button */}
-          <View style={{ marginTop: 24 }}>
+          <Animated.View
+            style={{ marginTop: 24 }}
+            entering={FadeInDown.delay(400).duration(400)}
+          >
             <Button
               title="Cerrar Sesión"
               variant="outline"
               onPress={signOut}
             />
-          </View>
+          </Animated.View>
         </View>
       </ScrollView>
     </SafeAreaView>

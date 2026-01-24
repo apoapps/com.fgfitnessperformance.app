@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
 import { useChat } from '@/contexts/ChatContext';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 interface QuickActionProps {
   testID: string;
@@ -76,11 +77,12 @@ export default function DashboardScreen() {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
-          <ScreenHeader
-            title={displayName || user?.email?.split('@')[0] || 'Usuario'}
-            subtitle="Bienvenido"
-            logoSize={32}
-            rightElement={
+          <Animated.View entering={FadeIn.duration(300)}>
+            <ScreenHeader
+              title={displayName || user?.email?.split('@')[0] || 'Usuario'}
+              subtitle="Bienvenido"
+              logoSize={32}
+              rightElement={
               <Pressable
                 testID="notification-button"
                 onPress={() => router.push('/chat')}
@@ -119,10 +121,14 @@ export default function DashboardScreen() {
                 )}
               </Pressable>
             }
-          />
+            />
+          </Animated.View>
 
           {/* Quick Actions */}
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Animated.View
+            style={{ flexDirection: 'row', gap: 12 }}
+            entering={FadeInDown.delay(100).duration(400)}
+          >
             <QuickAction
               testID="quick-action-workout"
               icon="🏋️"
@@ -141,10 +147,13 @@ export default function DashboardScreen() {
               label="Perfil"
               onPress={() => router.push('/(tabs)/profile')}
             />
-          </View>
+          </Animated.View>
 
           {/* Next Workout Card */}
-          <View style={{ gap: 12 }}>
+          <Animated.View
+            style={{ gap: 12 }}
+            entering={FadeInDown.delay(200).duration(400)}
+          >
             <Text variant="caption" color="textMuted" uppercase>
               Próximo Entrenamiento
             </Text>
@@ -237,7 +246,7 @@ export default function DashboardScreen() {
                 </View>
               </Card>
             )}
-          </View>
+          </Animated.View>
 
         </View>
       </ScrollView>

@@ -1,19 +1,22 @@
 import React from 'react';
 import {
-  TouchableOpacity,
-  TouchableOpacityProps,
+  Pressable,
+  PressableProps,
   StyleSheet,
   ActivityIndicator,
   View,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Text } from './Text';
 import { borderRadius, spacing } from '@/constants/design-tokens';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends Omit<TouchableOpacityProps, 'children'> {
+interface ButtonProps extends Omit<PressableProps, 'children'> {
   title: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -97,9 +100,22 @@ export function Button({
   };
 
   const textColor = getTextColor();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.96, { damping: 15 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 12 });
+  };
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       style={[
         styles.button,
         {
@@ -109,10 +125,12 @@ export function Button({
         },
         getPadding(),
         fullWidth && styles.fullWidth,
+        animatedStyle,
         style,
       ]}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       {...props}
     >
       {loading ? (
@@ -130,7 +148,7 @@ export function Button({
           {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
         </View>
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

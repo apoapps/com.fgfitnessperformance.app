@@ -1,0 +1,177 @@
+{
+  "version": "1.0",
+  "name": "Login Screen - Light Mode",
+  "description": "Pantalla de inicio de sesión para FG Fitness Performance en modo claro",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "deviceType": "mobile"
+  },
+  "theme": {
+    "mode": "light",
+    "colors": {
+      "background": "#fafafa",
+      "surface": "#ffffff",
+      "primary": "#ca8a04",
+      "text": "#09090b",
+      "textMuted": "#71717a",
+      "border": "#e4e4e7"
+    },
+    "typography": {
+      "heading": "Oswald",
+      "body": "Inter"
+    }
+  },
+  "elements": [
+    {
+      "type": "container",
+      "id": "screen",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#fafafa",
+        "padding": 20,
+        "justifyContent": "center"
+      },
+      "children": [
+        {
+          "type": "container",
+          "id": "header",
+          "style": {
+            "alignItems": "center",
+            "marginBottom": 48
+          },
+          "children": [
+            {
+              "type": "image",
+              "id": "logo",
+              "src": "logo-h-negro.svg",
+              "style": {
+                "width": 300,
+                "height": 60,
+                "marginBottom": 16
+              },
+              "alt": "FG Fitness Performance Logo"
+            },
+            {
+              "type": "divider",
+              "id": "accent-line",
+              "style": {
+                "width": 48,
+                "height": 4,
+                "backgroundColor": "#ca8a04",
+                "marginTop": 8
+              }
+            }
+          ]
+        },
+        {
+          "type": "card",
+          "id": "login-form",
+          "variant": "glass",
+          "style": {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 16,
+            "padding": 24,
+            "gap": 20,
+            "borderWidth": 1,
+            "borderColor": "#e4e4e7",
+            "shadowColor": "#000",
+            "shadowOpacity": 0.05,
+            "shadowRadius": 10,
+            "shadowOffset": {"x": 0, "y": 4}
+          },
+          "children": [
+            {
+              "type": "text",
+              "id": "title",
+              "content": "INICIAR SESIÓN",
+              "style": {
+                "fontFamily": "Oswald",
+                "fontSize": 24,
+                "fontWeight": "700",
+                "color": "#09090b",
+                "textAlign": "center",
+                "letterSpacing": 1
+              }
+            },
+            {
+              "type": "input",
+              "id": "email-input",
+              "label": "Email",
+              "placeholder": "tu@email.com",
+              "inputType": "email",
+              "style": {
+                "backgroundColor": "#fafafa",
+                "borderRadius": 12,
+                "padding": 16,
+                "borderWidth": 1,
+                "borderColor": "#e4e4e7",
+                "fontFamily": "Inter",
+                "fontSize": 16,
+                "color": "#09090b"
+              }
+            },
+            {
+              "type": "input",
+              "id": "password-input",
+              "label": "Contraseña",
+              "placeholder": "Tu contraseña",
+              "inputType": "password",
+              "style": {
+                "backgroundColor": "#fafafa",
+                "borderRadius": 12,
+                "padding": 16,
+                "borderWidth": 1,
+                "borderColor": "#e4e4e7",
+                "fontFamily": "Inter",
+                "fontSize": 16,
+                "color": "#09090b"
+              }
+            },
+            {
+              "type": "button",
+              "id": "login-button",
+              "content": "INICIAR SESIÓN",
+              "variant": "primary",
+              "style": {
+                "backgroundColor": "#ca8a04",
+                "borderRadius": 12,
+                "padding": 16,
+                "fontFamily": "Oswald",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "color": "#ffffff",
+                "textAlign": "center",
+                "letterSpacing": 1
+              }
+            },
+            {
+              "type": "text",
+              "id": "forgot-password",
+              "content": "¿Olvidaste tu contraseña? Contacta a tu entrenador.",
+              "style": {
+                "fontFamily": "Inter",
+                "fontSize": 12,
+                "color": "#71717a",
+                "textAlign": "center"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "footer",
+          "content": "© 2024 FG Fitness Performance",
+          "style": {
+            "fontFamily": "Inter",
+            "fontSize": 12,
+            "color": "#71717a",
+            "textAlign": "center",
+            "marginTop": 32
+          }
+        }
+      ]
+    }
+  ]
+}

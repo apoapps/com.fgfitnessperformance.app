@@ -14,6 +14,7 @@ export interface BlockExercise {
   rest: number;
   notes?: string;
   weight?: string;
+  tempo?: string; // Format: "3-1-2-0" (eccentric-pause-concentric-pause)
 }
 
 // Block within a workout day (can be straight or circuit)

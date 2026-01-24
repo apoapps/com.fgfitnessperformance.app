@@ -14,6 +14,7 @@ export const colors = {
     surface: '#18181b',
     surfaceHighlight: '#27272a',
     surfaceElevated: '#3f3f46',
+    tabBarBackground: '#18181b',
 
     // Primary
     primary: '#ffd801',
@@ -69,6 +70,7 @@ export const colors = {
     surface: '#ffffff',
     surfaceHighlight: '#f4f4f5',
     surfaceElevated: '#e4e4e7',
+    tabBarBackground: '#f4f4f5',
 
     primary: '#ffd801',
     primaryDim: 'rgba(202, 138, 4, 0.12)',

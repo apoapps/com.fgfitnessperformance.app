@@ -1,0 +1,635 @@
+{
+  "version": "1.0",
+  "name": "Workout Screen - Light Mode",
+  "description": "Pantalla de entrenamiento con selector de días y bloques en modo claro",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "deviceType": "mobile"
+  },
+  "theme": {
+    "mode": "light",
+    "colors": {
+      "background": "#fafafa",
+      "surface": "#ffffff",
+      "primary": "#ca8a04",
+      "text": "#09090b",
+      "textMuted": "#71717a",
+      "border": "#e4e4e7",
+      "success": "#22c55e"
+    },
+    "typography": {
+      "heading": "Oswald",
+      "body": "Inter"
+    }
+  },
+  "elements": [
+    {
+      "type": "container",
+      "id": "screen",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#fafafa"
+      },
+      "children": [
+        {
+          "type": "container",
+          "id": "content",
+          "style": {
+            "padding": 20,
+            "paddingTop": 60,
+            "gap": 20
+          },
+          "children": [
+            {
+              "type": "container",
+              "id": "header",
+              "style": {
+                "flexDirection": "row",
+                "alignItems": "center",
+                "gap": 10
+              },
+              "children": [
+                {
+                  "type": "image",
+                  "id": "mini-logo",
+                  "src": "mini-logo-negro.svg",
+                  "style": {
+                    "width": 32,
+                    "height": 24
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "plan-title",
+                  "content": "PROGRAMA FORÇA",
+                  "style": {
+                    "fontFamily": "Oswald",
+                    "fontSize": 22,
+                    "fontWeight": "700",
+                    "color": "#09090b",
+                    "letterSpacing": 0.5,
+                    "flex": 1
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "plan-goal",
+              "content": "Ganancia de fuerza y masa muscular - 12 semanas",
+              "style": {
+                "fontFamily": "Inter",
+                "fontSize": 14,
+                "color": "#71717a"
+              }
+            },
+            {
+              "type": "container",
+              "id": "day-selector",
+              "style": {
+                "flexDirection": "row",
+                "gap": 8,
+                "overflow": "scroll",
+                "paddingVertical": 8
+              },
+              "children": [
+                {
+                  "type": "button",
+                  "id": "day-1",
+                  "content": "1",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "color": "#71717a"
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "day-2",
+                  "content": "2",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "color": "#71717a"
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "day-3",
+                  "content": "3",
+                  "active": true,
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ca8a04",
+                    "borderWidth": 2,
+                    "borderColor": "#ca8a04",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "700",
+                    "color": "#ffffff"
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "day-4",
+                  "content": "4",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "color": "#71717a"
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "day-5",
+                  "content": "5",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "color": "#71717a"
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "day-6",
+                  "content": "6",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "color": "#71717a"
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "day-7",
+                  "content": "7",
+                  "style": {
+                    "width": 44,
+                    "height": 44,
+                    "borderRadius": 22,
+                    "backgroundColor": "#ffffff",
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "color": "#71717a"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "card",
+              "id": "objective-card",
+              "style": {
+                "backgroundColor": "#fffbeb",
+                "borderRadius": 12,
+                "padding": 16,
+                "borderWidth": 1,
+                "borderColor": "#fde68a"
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "id": "objective-label",
+                  "content": "OBJETIVO DEL DÍA",
+                  "style": {
+                    "fontFamily": "Inter",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "color": "#92400e",
+                    "letterSpacing": 1,
+                    "marginBottom": 4
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "objective-text",
+                  "content": "Desarrollar fuerza máxima en movimientos compuestos con énfasis en técnica perfecta",
+                  "style": {
+                    "fontFamily": "Inter",
+                    "fontSize": 14,
+                    "color": "#78350f"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "id": "workout-blocks",
+              "style": {
+                "gap": 16
+              },
+              "children": [
+                {
+                  "type": "card",
+                  "id": "block-a",
+                  "style": {
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "padding": 16,
+                    "gap": 12,
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7"
+                  },
+                  "children": [
+                    {
+                      "type": "container",
+                      "id": "block-header",
+                      "style": {
+                        "flexDirection": "row",
+                        "alignItems": "center",
+                        "gap": 12
+                      },
+                      "children": [
+                        {
+                          "type": "badge",
+                          "content": "A",
+                          "style": {
+                            "width": 32,
+                            "height": 32,
+                            "borderRadius": 16,
+                            "backgroundColor": "#ca8a04",
+                            "fontFamily": "Oswald",
+                            "fontSize": 18,
+                            "fontWeight": "700",
+                            "color": "#ffffff",
+                            "textAlign": "center",
+                            "lineHeight": 32
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "content": "Fuerza Principal",
+                          "style": {
+                            "fontFamily": "Oswald",
+                            "fontSize": 16,
+                            "fontWeight": "700",
+                            "color": "#09090b"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "id": "exercise-1",
+                      "style": {
+                        "gap": 8,
+                        "paddingVertical": 12,
+                        "borderBottomWidth": 1,
+                        "borderBottomColor": "#f4f4f5"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "content": "Sentadilla Trasera con Barra",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontSize": 15,
+                            "fontWeight": "600",
+                            "color": "#09090b"
+                          }
+                        },
+                        {
+                          "type": "container",
+                          "style": {
+                            "flexDirection": "row",
+                            "gap": 16,
+                            "flexWrap": "wrap"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "content": "4 series",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "6-8 reps",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "80% 1RM",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "3' descanso",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "id": "exercise-2",
+                      "style": {
+                        "gap": 8,
+                        "paddingVertical": 12
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "content": "Press de Banca",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontSize": 15,
+                            "fontWeight": "600",
+                            "color": "#09090b"
+                          }
+                        },
+                        {
+                          "type": "container",
+                          "style": {
+                            "flexDirection": "row",
+                            "gap": 16,
+                            "flexWrap": "wrap"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "content": "4 series",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "6-8 reps",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "75% 1RM",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "2.5' descanso",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "card",
+                  "id": "block-b",
+                  "style": {
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "padding": 16,
+                    "gap": 12,
+                    "borderWidth": 1,
+                    "borderColor": "#e4e4e7"
+                  },
+                  "children": [
+                    {
+                      "type": "container",
+                      "id": "block-header",
+                      "style": {
+                        "flexDirection": "row",
+                        "alignItems": "center",
+                        "gap": 12
+                      },
+                      "children": [
+                        {
+                          "type": "badge",
+                          "content": "B",
+                          "style": {
+                            "width": 32,
+                            "height": 32,
+                            "borderRadius": 16,
+                            "backgroundColor": "#ca8a04",
+                            "fontFamily": "Oswald",
+                            "fontSize": 18,
+                            "fontWeight": "700",
+                            "color": "#ffffff",
+                            "textAlign": "center",
+                            "lineHeight": 32
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "content": "Accesorios",
+                          "style": {
+                            "fontFamily": "Oswald",
+                            "fontSize": 16,
+                            "fontWeight": "700",
+                            "color": "#09090b"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "id": "exercise-3",
+                      "style": {
+                        "gap": 8,
+                        "paddingVertical": 12
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "content": "Remo con Barra",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontSize": 15,
+                            "fontWeight": "600",
+                            "color": "#09090b"
+                          }
+                        },
+                        {
+                          "type": "container",
+                          "style": {
+                            "flexDirection": "row",
+                            "gap": 16,
+                            "flexWrap": "wrap"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "content": "3 series",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "10-12 reps",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "RPE 8",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "content": "90\" descanso",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontSize": 13,
+                                "color": "#71717a"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "tabbar",
+          "id": "bottom-tabs",
+          "style": {
+            "position": "absolute",
+            "bottom": 20,
+            "left": 20,
+            "right": 20,
+            "height": 60,
+            "backgroundColor": "#ffffff",
+            "borderRadius": 30,
+            "flexDirection": "row",
+            "justifyContent": "space-around",
+            "alignItems": "center",
+            "borderWidth": 1,
+            "borderColor": "#e4e4e7",
+            "shadowColor": "#000",
+            "shadowOpacity": 0.1,
+            "shadowRadius": 20,
+            "shadowOffset": {"x": 0, "y": 8}
+          },
+          "children": [
+            {
+              "type": "tab",
+              "id": "tab-dashboard",
+              "icon": "home",
+              "style": {"color": "#71717a"}
+            },
+            {
+              "type": "tab",
+              "id": "tab-workout",
+              "icon": "barbell",
+              "active": true,
+              "style": {"color": "#ca8a04"}
+            },
+            {
+              "type": "tab",
+              "id": "tab-nutrition",
+              "icon": "nutrition",
+              "style": {"color": "#71717a"}
+            },
+            {
+              "type": "tab",
+              "id": "tab-profile",
+              "icon": "person",
+              "style": {"color": "#71717a"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

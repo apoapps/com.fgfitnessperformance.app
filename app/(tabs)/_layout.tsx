@@ -1,11 +1,28 @@
-import React from 'react';
-import { Platform } from 'react-native';
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs, usePathname } from 'expo-router';
+import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const LAST_TAB_KEY = '@fg_last_visited_tab';
+const VALID_TABS = ['dashboard', 'workout', 'nutrition', 'profile'] as const;
 
 export default function TabLayout() {
   const { colors } = useTheme();
+  const pathname = usePathname();
+
+  // Save last visited tab when pathname changes
+  useEffect(() => {
+    // Extract tab name from pathname like "/(tabs)/dashboard"
+    const match = pathname.match(/\(tabs\)\/(dashboard|workout|nutrition|profile)/);
+    if (match && match[1]) {
+      const tabName = match[1];
+      if (VALID_TABS.includes(tabName as any)) {
+        AsyncStorage.setItem(LAST_TAB_KEY, tabName).catch(console.error);
+      }
+    }
+  }, [pathname]);
 
   return (
     <Tabs
@@ -14,7 +31,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: colors.tabBarBackground,
           borderTopColor: colors.border,
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 88 : 68,
@@ -33,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Hub',
+          title: 'Inicio',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -46,7 +63,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="workout"
         options={{
-          title: 'Entreno',
+          title: 'FG Training',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'barbell' : 'barbell-outline'}
@@ -59,7 +76,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="nutrition"
         options={{
-          title: 'Nutrición',
+          title: 'FG Nutrition',
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'restaurant' : 'restaurant-outline'}

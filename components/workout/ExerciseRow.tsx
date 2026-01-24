@@ -25,6 +25,10 @@ export function ExerciseRow({ exercise, onPress, compact = false }: ExerciseRowP
       parts.push(`${exercise.reps} REPS`);
     }
 
+    if (exercise.tempo) {
+      parts.push(`Tempo ${exercise.tempo}`);
+    }
+
     if (exercise.rest > 0) {
       parts.push(`${exercise.rest}s DESC`);
     }

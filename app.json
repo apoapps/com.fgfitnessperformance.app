@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.apoapps.fgfitnessperformance"
+      "bundleIdentifier": "com.apoapps.fgfitnessperformance",
+      "icon": "./assets/ios/icon.icon",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.apoapps.fgfitnessperformance",
@@ -47,6 +51,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1eaf4191-e3bb-4d52-a8ad-4095d7695bb4"
+      }
     }
   }
 }
