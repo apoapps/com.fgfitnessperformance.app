@@ -16,6 +16,9 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 // Logos
 const LogoHBlanco = require('../../../assets/logo-h-blanco.svg');
 
+// Hero image for dashboard
+const DashboardHeroImage = require('../../../assets/photos/dashboard/DSC00107.JPEG');
+
 export default function DashboardScreen() {
   const { colors } = useTheme();
   const { user, isAuthenticated } = useAuth();
@@ -36,64 +39,89 @@ export default function DashboardScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0f0f0f' }}>
-      {/* Dark Header with Logo */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: '#0f0f0f' }}>
+      {/* Dark Header with Hero Image */}
+      <View style={{ position: 'relative' }}>
+        {/* Background Image */}
+        <Image
+          source={DashboardHeroImage}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+          contentFit="cover"
+          contentPosition="center"
+        />
+
+        {/* Dark Overlay */}
         <View
           style={{
-            backgroundColor: '#0f0f0f',
-            paddingVertical: 20,
-            paddingHorizontal: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
           }}
-        >
-          {/* Left Logo with yellow underline */}
-          <View>
-            <Image
-              source={LogoHBlanco}
-              style={{ width: 180, height: 40 }}
-              contentFit="contain"
-            />
-            <View style={{ height: 3, backgroundColor: '#ffd801', marginTop: 4, borderRadius: 2 }} />
-          </View>
+        />
 
-          {/* Chat Button - Yellow text */}
-          <Pressable
-            testID="chat-button"
-            onPress={() => router.push('/chat')}
-            style={({ pressed }) => ({
+        <SafeAreaView edges={['top']}>
+          <View
+            style={{
+              paddingVertical: 20,
+              paddingHorizontal: 20,
               flexDirection: 'row',
               alignItems: 'center',
-              gap: 6,
-              opacity: pressed ? 0.7 : 1,
-            })}
+              justifyContent: 'space-between',
+            }}
           >
-            <Ionicons name="chatbubble-ellipses" size={20} color="#ffd801" />
-            <Text style={{ color: '#ffd801', fontSize: 14, fontWeight: '700' }}>
-              Dudas
-            </Text>
-            {unreadCount > 0 && (
-              <View
-                testID="unread-badge"
-                style={{
-                  minWidth: 18,
-                  height: 18,
-                  borderRadius: 9,
-                  backgroundColor: '#ef4444',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  paddingHorizontal: 4,
-                }}
-              >
-                <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
-      </SafeAreaView>
+            {/* Left Logo with yellow underline */}
+            <View>
+              <Image
+                source={LogoHBlanco}
+                style={{ width: 180, height: 40 }}
+                contentFit="contain"
+              />
+              <View style={{ height: 3, backgroundColor: '#ffd801', marginTop: 4, borderRadius: 2 }} />
+            </View>
+
+            {/* Chat Button - Yellow text */}
+            <Pressable
+              testID="chat-button"
+              onPress={() => router.push('/chat')}
+            >
+              {({ pressed }) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, opacity: pressed ? 0.7 : 1 }}>
+                  <Ionicons name="chatbubble-ellipses" size={20} color="#ffd801" />
+                  <Text style={{ color: '#ffd801', fontSize: 14, fontWeight: '700' }}>
+                    Dudas
+                  </Text>
+                  {unreadCount > 0 && (
+                    <View
+                      testID="unread-badge"
+                      style={{
+                        minWidth: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        backgroundColor: '#ef4444',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        paddingHorizontal: 4,
+                      }}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </View>
 
       {/* Light body with rounded corners */}
       <View
