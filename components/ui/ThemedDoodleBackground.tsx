@@ -72,14 +72,14 @@ export function ThemedDoodleBackground({
   const { colors, isDark } = useTheme();
   const icons = ICON_SETS[theme];
 
-  const logoSize = 42;  // 50% larger
-  const iconSize = 27;  // 50% larger
+  const logoSize = 32;  // 25% smaller (was 42)
+  const iconSize = 20;  // 25% smaller (was 27)
   const cols = Math.ceil(SCREEN_WIDTH / spacing) + 1;
   const rows = Math.ceil(SCREEN_HEIGHT / spacing) + 2;
 
-  // Color for icons - more visible
-  const iconColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)';
-  const logoOpacity = isDark ? 0.08 : 0.06;
+  // Color for icons - more visible/opaque
+  const iconColor = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)';
+  const logoOpacity = isDark ? 0.12 : 0.10;
 
   const items = useMemo(() => {
     const elements = [];

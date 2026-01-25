@@ -174,48 +174,53 @@ export default function WorkoutScreen() {
             />
           </View>
 
-          {/* Plan Title with Logo */}
+          {/* Plan Title with Logo - Card */}
           <Animated.View
             style={{ paddingHorizontal: 20, paddingTop: 16 }}
             entering={FadeIn.duration(300)}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Image
-                source={isDark ? MiniLogoBlanco : MiniLogoNegro}
-                style={{ width: 32, height: 24 }}
-                contentFit="contain"
-              />
-              <Text
-                variant="hero"
-                style={{
-                  fontSize: 22,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  textShadowColor: 'rgba(0, 0, 0, 0.3)',
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 3,
-                  flex: 1,
-                }}
-              >
-                {workoutPlan.title}
-              </Text>
-            </View>
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 16,
+                padding: 16,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Image
+                  source={isDark ? MiniLogoBlanco : MiniLogoNegro}
+                  style={{ width: 32, height: 24 }}
+                  contentFit="contain"
+                />
+                <Text
+                  variant="hero"
+                  style={{
+                    fontSize: 22,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    flex: 1,
+                  }}
+                >
+                  {workoutPlan.title}
+                </Text>
+              </View>
 
-            {/* Plan Goal */}
-            {workoutPlan.goal && (
-              <Text
-                variant="body"
-                style={{
-                  marginTop: 8,
-                  opacity: 0.9,
-                  textShadowColor: 'rgba(0, 0, 0, 0.2)',
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 2,
-                }}
-              >
-                {workoutPlan.goal}
-              </Text>
-            )}
+              {/* Plan Goal */}
+              {workoutPlan.goal && (
+                <Text
+                  variant="body"
+                  color="textMuted"
+                  style={{ marginTop: 8 }}
+                >
+                  {workoutPlan.goal}
+                </Text>
+              )}
+            </View>
           </Animated.View>
 
         {/* Main Content */}
