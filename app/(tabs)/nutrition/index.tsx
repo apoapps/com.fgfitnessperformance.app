@@ -353,34 +353,39 @@ export default function NutritionScreen() {
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
-          {/* Header with Nutritionist Image */}
+          {/* Hero Card with Nutritionist */}
           <Animated.View entering={FadeIn.duration(300)}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-              <View style={{ flex: 1 }}>
-                <ScreenHeader title="FG Nutrition Plan" logoSize={28} />
-              </View>
-              {/* Nutritionist floating image with glow stroke effect */}
-              <View
-                style={{
-                  shadowColor: '#ffd801',
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.6,
-                  shadowRadius: 8,
-                  elevation: 8,
-                }}
-              >
-                <Image
-                  source={NutritionistWithApple}
+            <Card variant="glass">
+              <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+                {/* Left side - Title and subtitle */}
+                <View style={{ flex: 1, gap: 8 }}>
+                  <ScreenHeader title="FG Nutrition Plan" logoSize={28} />
+                  <Text variant="bodySm" color="textMuted">
+                    Tu plan personalizado
+                  </Text>
+                </View>
+
+                {/* Right side - Nutritionist image with glow */}
+                <View
                   style={{
-                    width: 100,
-                    height: 140,
-                    marginTop: -10,
-                    marginRight: -10,
+                    shadowColor: '#ffd801',
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 6,
+                    elevation: 6,
                   }}
-                  contentFit="contain"
-                />
+                >
+                  <Image
+                    source={NutritionistWithApple}
+                    style={{
+                      width: 90,
+                      height: 120,
+                    }}
+                    contentFit="contain"
+                  />
+                </View>
               </View>
-            </View>
+            </Card>
           </Animated.View>
 
           {/* Compact Macro Bar with Water */}

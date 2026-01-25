@@ -183,7 +183,7 @@ export default function WorkoutScreen() {
                   bottom: 0,
                 }}
                 contentFit="cover"
-                contentPosition="top"
+                contentPosition="center"
               />
 
               {/* Dark Overlay */}
