@@ -40,24 +40,21 @@ export default function DashboardScreen() {
       <FitnessDoodleBackground opacity={0.03} spacing={100} logoFrequency={5} />
 
       {/* Dark Header with Logo */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: '#1c1c1e' }}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: '#0f0f0f' }}>
         <View
           style={{
-            backgroundColor: '#1c1c1e',
-            paddingVertical: 16,
+            backgroundColor: '#0f0f0f',
+            paddingVertical: 20,
             paddingHorizontal: 20,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
-          {/* Spacer for balance */}
-          <View style={{ width: 44 }} />
-
-          {/* Center Logo */}
+          {/* Left Logo */}
           <Image
             source={LogoHBlanco}
-            style={{ width: 160, height: 32 }}
+            style={{ width: 180, height: 40 }}
             contentFit="contain"
           />
 
@@ -100,46 +97,55 @@ export default function DashboardScreen() {
         </View>
       </SafeAreaView>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+      {/* Dark rounded container - Workout Room style */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#1a1a1a',
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          marginTop: -4,
+          overflow: 'hidden',
+        }}
       >
-        <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 24 }}>
-          {/* Welcome Section */}
-          <Animated.View entering={FadeIn.duration(300)} style={{ gap: 4 }}>
-            <Text
-              variant="body"
-              style={{ color: colors.textMuted, fontSize: 16 }}
-            >
-              Bienvenido
-            </Text>
-            <Text
-              variant="hero"
-              style={{ fontSize: 32, color: colors.text }}
-            >
-              {displayName || user?.email?.split('@')[0] || 'Usuario'}
-            </Text>
-          </Animated.View>
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
+          <View style={{ paddingHorizontal: 20, paddingTop: 28, gap: 24 }}>
+            {/* Welcome Section */}
+            <Animated.View entering={FadeIn.duration(300)} style={{ gap: 4 }}>
+              <Text
+                variant="body"
+                style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16 }}
+              >
+                Bienvenido
+              </Text>
+              <Text
+                variant="hero"
+                style={{ fontSize: 32, color: '#fff' }}
+              >
+                {displayName || user?.email?.split('@')[0] || 'Usuario'}
+              </Text>
+            </Animated.View>
 
-          {/* Status Grid */}
-          <Animated.View
-            style={{ gap: 12 }}
-            entering={FadeInDown.delay(100).duration(400)}
-          >
-            {/* Workout Plan Card */}
+            {/* Status Grid */}
+            <Animated.View
+              style={{ gap: 12 }}
+              entering={FadeInDown.delay(100).duration(400)}
+            >
+            {/* Workout Plan Card - Light */}
             <Pressable
               testID="workout-status-card"
               onPress={() => router.push('/(tabs)/workout')}
               style={({ pressed }) => ({
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
+                backgroundColor: pressed ? '#e8e8e8' : '#f5f5f5',
                 borderRadius: 16,
                 padding: 20,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderWidth: 1,
-                borderColor: colors.border,
               })}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -148,7 +154,7 @@ export default function DashboardScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: workoutPlan ? colors.primary + '20' : colors.surfaceHighlight,
+                    backgroundColor: workoutPlan ? 'rgba(255,216,1,0.25)' : '#e0e0e0',
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}
@@ -156,34 +162,32 @@ export default function DashboardScreen() {
                   <Ionicons
                     name={workoutPlan ? 'barbell' : 'barbell-outline'}
                     size={24}
-                    color={workoutPlan ? colors.primary : colors.textMuted}
+                    color={workoutPlan ? '#b39700' : '#888'}
                   />
                 </View>
                 <View style={{ gap: 2 }}>
-                  <Text variant="bodyMedium" style={{ fontSize: 16 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#1a1a1a' }}>
                     {workoutPlan ? 'Plan de Entrenamiento' : 'Sin Plan Asignado'}
                   </Text>
-                  <Text variant="bodySm" color="textMuted">
+                  <Text style={{ fontSize: 14, color: '#666' }}>
                     {workoutPlan ? `${totalDays} días de rutinas` : 'Contacta a tu coach'}
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={20} color="#999" />
             </Pressable>
 
-            {/* Nutrition Plan Card */}
+            {/* Nutrition Plan Card - Light */}
             <Pressable
               testID="nutrition-status-card"
               onPress={() => router.push('/(tabs)/nutrition')}
               style={({ pressed }) => ({
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
+                backgroundColor: pressed ? '#e8e8e8' : '#f5f5f5',
                 borderRadius: 16,
                 padding: 20,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderWidth: 1,
-                borderColor: colors.border,
               })}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -192,7 +196,7 @@ export default function DashboardScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: nutritionPlan ? colors.primary + '20' : colors.surfaceHighlight,
+                    backgroundColor: nutritionPlan ? 'rgba(255,216,1,0.25)' : '#e0e0e0',
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}
@@ -200,34 +204,32 @@ export default function DashboardScreen() {
                   <Ionicons
                     name={nutritionPlan ? 'nutrition' : 'nutrition-outline'}
                     size={24}
-                    color={nutritionPlan ? colors.primary : colors.textMuted}
+                    color={nutritionPlan ? '#b39700' : '#888'}
                   />
                 </View>
                 <View style={{ gap: 2 }}>
-                  <Text variant="bodyMedium" style={{ fontSize: 16 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#1a1a1a' }}>
                     {nutritionPlan ? 'Plan de Nutrición' : 'Sin Plan Asignado'}
                   </Text>
-                  <Text variant="bodySm" color="textMuted">
+                  <Text style={{ fontSize: 14, color: '#666' }}>
                     {nutritionPlan ? 'Ver macros y comidas' : 'Contacta a tu coach'}
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={20} color="#999" />
             </Pressable>
 
-            {/* Profile Card */}
+            {/* Profile Card - Light */}
             <Pressable
               testID="profile-status-card"
               onPress={() => router.push('/(tabs)/profile')}
               style={({ pressed }) => ({
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
+                backgroundColor: pressed ? '#e8e8e8' : '#f5f5f5',
                 borderRadius: 16,
                 padding: 20,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderWidth: 1,
-                borderColor: colors.border,
               })}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -236,27 +238,28 @@ export default function DashboardScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: colors.surfaceHighlight,
+                    backgroundColor: '#e0e0e0',
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}
                 >
-                  <Ionicons name="person" size={24} color={colors.textMuted} />
+                  <Ionicons name="person" size={24} color="#888" />
                 </View>
                 <View style={{ gap: 2 }}>
-                  <Text variant="bodyMedium" style={{ fontSize: 16 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: '#1a1a1a' }}>
                     Mi Perfil
                   </Text>
-                  <Text variant="bodySm" color="textMuted">
+                  <Text style={{ fontSize: 14, color: '#666' }}>
                     Configuración y ajustes
                   </Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={20} color="#999" />
             </Pressable>
           </Animated.View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
