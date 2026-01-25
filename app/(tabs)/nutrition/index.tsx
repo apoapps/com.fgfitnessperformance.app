@@ -372,24 +372,24 @@ export default function NutritionScreen() {
                   </Text>
                 </View>
 
-                {/* Right side - Nutritionist image with glow */}
+                {/* Right side - Nutritionist image with strong glow */}
                 <View
                   style={{
                     shadowColor: '#ffd801',
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.6,
-                    shadowRadius: 10,
-                    elevation: 8,
+                    shadowOpacity: 0.8,
+                    shadowRadius: 16,
+                    elevation: 12,
                   }}
                 >
                   <Image
                     source={NutritionistWithApple}
                     style={{
-                      width: 130,
-                      height: 170,
-                      marginRight: -16,
-                      marginTop: -16,
-                      marginBottom: -16,
+                      width: 160,
+                      height: 210,
+                      marginRight: -20,
+                      marginTop: -30,
+                      marginBottom: -30,
                     }}
                     contentFit="contain"
                   />
