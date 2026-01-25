@@ -65,20 +65,21 @@ interface ThemedDoodleBackgroundProps {
 
 export function ThemedDoodleBackground({
   theme,
-  opacity = 0.06,
-  spacing = 85,
+  opacity = 1, // Full opacity - we control visibility via icon color
+  spacing = 80,
   logoFrequency = 4,
 }: ThemedDoodleBackgroundProps) {
   const { colors, isDark } = useTheme();
   const icons = ICON_SETS[theme];
 
-  const logoSize = 32;
-  const iconSize = 20;
+  const logoSize = 28;
+  const iconSize = 18;
   const cols = Math.ceil(SCREEN_WIDTH / spacing) + 1;
   const rows = Math.ceil(SCREEN_HEIGHT / spacing) + 2;
 
-  // Color for icons - subtle monochrome
-  const iconColor = isDark ? colors.textMuted : colors.textMuted;
+  // Color for icons - visible but subtle (use border color which has good contrast)
+  const iconColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const logoOpacity = isDark ? 0.06 : 0.04;
 
   const items = useMemo(() => {
     const elements = [];
@@ -105,6 +106,7 @@ export function ThemedDoodleBackground({
                 width: logoSize,
                 height: logoSize,
                 transform: [{ rotate: `${rotation}deg` }],
+                opacity: logoOpacity,
               }}
             >
               <Image
@@ -144,10 +146,10 @@ export function ThemedDoodleBackground({
       }
     }
     return elements;
-  }, [cols, rows, spacing, logoSize, iconSize, isDark, icons, logoFrequency, iconColor]);
+  }, [cols, rows, spacing, logoSize, iconSize, isDark, icons, logoFrequency, iconColor, logoOpacity]);
 
   return (
-    <View style={[StyleSheet.absoluteFill, { opacity }]} pointerEvents="none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {items}
     </View>
   );
