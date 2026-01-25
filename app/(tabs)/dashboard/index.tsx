@@ -35,10 +35,7 @@ export default function DashboardScreen() {
   const totalDays = useMemo(() => getTotalDays(), [getTotalDays]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Themed doodle background */}
-      <FitnessDoodleBackground opacity={0.03} spacing={100} logoFrequency={5} />
-
+    <View style={{ flex: 1, backgroundColor: '#0f0f0f' }}>
       {/* Dark Header with Logo */}
       <SafeAreaView edges={['top']} style={{ backgroundColor: '#0f0f0f' }}>
         <View
@@ -97,11 +94,26 @@ export default function DashboardScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Light body content */}
-      <ScrollView
-        style={{ flex: 1, backgroundColor: colors.background }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+      {/* Light body with rounded corners */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+          marginBottom: 8,
+          overflow: 'hidden',
+        }}
+      >
+        {/* Doodle background inside rounded container */}
+        <FitnessDoodleBackground opacity={0.03} spacing={100} logoFrequency={5} />
+
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 24 }}>
           {/* Welcome Section */}
@@ -254,7 +266,8 @@ export default function DashboardScreen() {
             </Pressable>
           </Animated.View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
