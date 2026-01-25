@@ -218,12 +218,13 @@ export default function ExerciseDetailScreen() {
       <FitnessDoodleBackground opacity={1} spacing={65} logoFrequency={3} />
 
       {/* Top Header Bar - BLACK with logo, back, and question button */}
+      {/* Modal already handles safe area, so minimal top padding */}
       <View
         style={{
           backgroundColor: '#000',
-          paddingTop: insets.top + 4,
-          paddingBottom: 8,
-          paddingHorizontal: 12,
+          paddingTop: 12,
+          paddingBottom: 10,
+          paddingHorizontal: 14,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
