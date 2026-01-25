@@ -19,8 +19,10 @@
     {
       "layers" : [
         {
-          "image-name" : "FG1 1.png",
-          "name" : "FG1 1",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "FG1 1 2.png",
+          "name" : "FG1 1 2",
           "position" : {
             "scale" : 1,
             "translation-in-points" : [

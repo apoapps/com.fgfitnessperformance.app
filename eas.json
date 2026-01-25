@@ -23,6 +23,18 @@
     "production": {
       "ios": {
         "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "apocor.alex@gmail.com",
+        "ascAppId": "6736681920",
+        "appleTeamId": "9WVL8YPSSD"
       }
     }
   }

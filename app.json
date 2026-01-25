@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.apoapps.fgfitnessperformance",
+      "buildNumber": "3",
       "icon": "./assets/ios/icon.icon",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
