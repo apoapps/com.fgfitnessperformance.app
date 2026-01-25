@@ -211,40 +211,36 @@ export default function ExerciseDetailScreen() {
       testID="exercise-detail-screen"
       style={{
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: '#121212',
       }}
     >
-      {/* Doodle background - more visible */}
-      <FitnessDoodleBackground opacity={1} spacing={65} logoFrequency={3} />
+      {/* Doodle background - subtle on dark */}
+      <FitnessDoodleBackground opacity={0.6} spacing={65} logoFrequency={3} />
 
       {/* Top Header Bar - BLACK with logo, back, and question button */}
-      {/* Modal already handles safe area, so minimal top padding */}
       <View
         style={{
           backgroundColor: '#000',
           paddingTop: 12,
-          paddingBottom: 10,
-          paddingHorizontal: 14,
+          paddingBottom: 12,
+          paddingHorizontal: 16,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        {/* Back Button - Row layout */}
+        {/* Back Button - Forced row with View wrapper */}
         <Pressable
           testID="back-button"
           onPress={() => router.back()}
           style={({ pressed }) => ({
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
             opacity: pressed ? 0.7 : 1,
-            paddingVertical: 8,
-            paddingRight: 12,
           })}
         >
-          <Ionicons name="chevron-back" size={24} color="#fff" />
-          <Text style={{ color: '#fff', fontSize: 15, fontWeight: '500' }}>Volver</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '500' }}>Volver</Text>
+          </View>
         </Pressable>
 
         {/* Logo centered - larger */}
@@ -266,16 +262,15 @@ export default function ExerciseDetailScreen() {
           })}
           style={({ pressed }) => ({
             backgroundColor: pressed ? '#b39700' : '#ffd801',
-            paddingHorizontal: 12,
+            paddingHorizontal: 14,
             paddingVertical: 8,
-            borderRadius: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
+            borderRadius: 18,
           })}
         >
-          <Ionicons name="chatbubble-ellipses" size={16} color="#000" />
-          <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>Coach</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="chatbubble-ellipses" size={16} color="#000" />
+            <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>Coach</Text>
+          </View>
         </Pressable>
       </View>
 
@@ -292,12 +287,20 @@ export default function ExerciseDetailScreen() {
       {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 20,
         }}
       >
-        {/* Exercise Info */}
-        <View style={{ padding: 16, paddingTop: 12 }}>
+        {/* Exercise Info - with semi-transparent dark card */}
+        <View style={{
+          padding: 16,
+          paddingTop: 12,
+          margin: 12,
+          marginTop: 8,
+          backgroundColor: 'rgba(18, 18, 18, 0.95)',
+          borderRadius: 16,
+        }}>
           <ExerciseInfo exercise={exercise} />
         </View>
       </ScrollView>
