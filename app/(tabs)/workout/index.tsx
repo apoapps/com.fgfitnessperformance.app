@@ -217,32 +217,32 @@ export default function WorkoutScreen() {
               )}
             </View>
 
-            {/* Question Button - Outside card, prominent */}
-            <Pressable
-              onPress={() => router.push({
-                pathname: '/chat',
-                params: {
-                  referenceType: 'workout',
-                  referenceId: `${workoutPlan.id}-day${selectedDay}`,
-                  referenceTag: `[${workoutPlan.title} - Día ${selectedDay}]`,
-                },
-              })}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                backgroundColor: pressed ? '#e5c200' : '#ffd801',
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                borderRadius: 12,
-              })}
-            >
-              <Ionicons name="chatbubble-ellipses" size={18} color="#000" />
-              <Text style={{ color: '#000', fontSize: 14, fontWeight: '600' }}>
-                ¿Dudas? Pregunta al Coach
-              </Text>
-            </Pressable>
+            {/* Question Button - Compact like exercise detail */}
+            <View style={{ alignItems: 'flex-start' }}>
+              <Pressable
+                onPress={() => router.push({
+                  pathname: '/chat',
+                  params: {
+                    referenceType: 'workout',
+                    referenceId: `${workoutPlan.id}-day${selectedDay}`,
+                    referenceTag: `[${workoutPlan.title} - Día ${selectedDay}]`,
+                  },
+                })}
+                style={({ pressed }) => ({
+                  backgroundColor: pressed ? '#b39700' : '#ffd801',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 18,
+                })}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="chatbubble-ellipses" size={16} color="#000" />
+                  <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>
+                    ¿Dudas? Coach
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
           </Animated.View>
 
         {/* Main Content */}
