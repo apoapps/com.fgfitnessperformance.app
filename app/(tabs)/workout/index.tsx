@@ -156,24 +156,6 @@ export default function WorkoutScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-          {/* Header buttons */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              flexDirection: 'row',
-              gap: 8,
-              zIndex: 10,
-            }}
-          >
-            <QuestionButton
-              referenceType="workout"
-              referenceId={`${workoutPlan.id}-day${selectedDay}`}
-              referenceTag={`[${workoutPlan.title} - Día ${selectedDay}]`}
-            />
-          </View>
-
           {/* Plan Title with Logo - Card */}
           <Animated.View
             style={{ paddingHorizontal: 20, paddingTop: 16 }}
@@ -220,6 +202,15 @@ export default function WorkoutScreen() {
                   {workoutPlan.goal}
                 </Text>
               )}
+
+              {/* Question Button */}
+              <View style={{ marginTop: 12, alignItems: 'flex-start' }}>
+                <QuestionButton
+                  referenceType="workout"
+                  referenceId={`${workoutPlan.id}-day${selectedDay}`}
+                  referenceTag={`[${workoutPlan.title} - Día ${selectedDay}]`}
+                />
+              </View>
             </View>
           </Animated.View>
 

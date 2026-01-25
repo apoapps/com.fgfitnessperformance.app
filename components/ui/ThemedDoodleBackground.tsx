@@ -77,9 +77,9 @@ export function ThemedDoodleBackground({
   const cols = Math.ceil(SCREEN_WIDTH / spacing) + 1;
   const rows = Math.ceil(SCREEN_HEIGHT / spacing) + 2;
 
-  // Color for icons - more visible/opaque
-  const iconColor = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)';
-  const logoOpacity = isDark ? 0.12 : 0.10;
+  // Color for icons - subtle/transparent
+  const iconColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const logoOpacity = isDark ? 0.06 : 0.05;
 
   const items = useMemo(() => {
     const elements = [];
