@@ -214,45 +214,22 @@ export default function ExerciseDetailScreen() {
         backgroundColor: colors.background,
       }}
     >
-      {/* Doodle background */}
-      <FitnessDoodleBackground opacity={1} spacing={70} logoFrequency={3} />
+      {/* Doodle background - more visible */}
+      <FitnessDoodleBackground opacity={1} spacing={65} logoFrequency={3} />
 
-      {/* Video section with logo above */}
-      {exercise.video_url && (
-        <View style={{ backgroundColor: '#000' }}>
-          {/* FG Logo centered above video */}
-          <View
-            style={{
-              paddingTop: insets.top + 8,
-              paddingBottom: 12,
-              alignItems: 'center',
-            }}
-          >
-            <Image
-              source={MiniLogoBlanco}
-              style={{ width: 40, height: 30 }}
-              contentFit="contain"
-            />
-          </View>
-          <VideoPlayer
-            url={exercise.video_url}
-            thumbnailUrl={exercise.thumbnail_url}
-          />
-        </View>
-      )}
-
-      {/* Navigation bar BELOW video (or at top if no video) */}
+      {/* Top Header Bar - BLACK with logo, back, and question button */}
       <View
         style={{
-          paddingTop: exercise.video_url ? 12 : insets.top + 8,
-          paddingHorizontal: 16,
-          paddingBottom: 12,
+          backgroundColor: '#000',
+          paddingTop: insets.top + 4,
+          paddingBottom: 8,
+          paddingHorizontal: 12,
           flexDirection: 'row',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: colors.background,
+          justifyContent: 'space-between',
         }}
       >
+        {/* Back Button */}
         <Pressable
           testID="back-button"
           onPress={() => router.back()}
@@ -261,20 +238,55 @@ export default function ExerciseDetailScreen() {
             alignItems: 'center',
             gap: 4,
             opacity: pressed ? 0.7 : 1,
+            paddingVertical: 6,
+            paddingRight: 8,
           })}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
-          <Text variant="body" style={{ fontWeight: '500' }}>Volver</Text>
+          <Ionicons name="chevron-back" size={22} color="#fff" />
+          <Text variant="bodySm" style={{ color: '#fff', fontWeight: '500' }}>Volver</Text>
         </Pressable>
 
-        {/* Prominent Question Button */}
-        <QuestionButton
-          referenceType="exercise"
-          referenceId={exercise.id}
-          referenceTag={`[${exercise.name}]`}
-          prominent
+        {/* Logo centered */}
+        <Image
+          source={MiniLogoBlanco}
+          style={{ width: 36, height: 27 }}
+          contentFit="contain"
         />
+
+        {/* Question Button - compact yellow */}
+        <Pressable
+          onPress={() => router.push({
+            pathname: '/chat',
+            params: {
+              referenceType: 'exercise',
+              referenceId: exercise.id,
+              referenceTag: `[${exercise.name}]`,
+            },
+          })}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? colors.primaryDark : colors.primary,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+          })}
+        >
+          <Ionicons name="chatbubble-ellipses" size={14} color="#000" />
+          <Text variant="caption" style={{ color: '#000', fontWeight: '600' }}>Coach</Text>
+        </Pressable>
       </View>
+
+      {/* Video */}
+      {exercise.video_url && (
+        <View style={{ backgroundColor: '#000' }}>
+          <VideoPlayer
+            url={exercise.video_url}
+            thumbnailUrl={exercise.thumbnail_url}
+          />
+        </View>
+      )}
 
       {/* Scrollable content */}
       <ScrollView
@@ -284,7 +296,7 @@ export default function ExerciseDetailScreen() {
         }}
       >
         {/* Exercise Info */}
-        <View style={{ padding: 20, paddingTop: 0 }}>
+        <View style={{ padding: 16, paddingTop: 12 }}>
           <ExerciseInfo exercise={exercise} />
         </View>
       </ScrollView>
