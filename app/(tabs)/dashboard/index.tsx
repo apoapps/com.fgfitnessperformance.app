@@ -17,7 +17,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 const LogoHBlanco = require('../../../assets/logo-h-blanco.svg');
 
 // Hero image for dashboard
-const DashboardHeroImage = require('../../../assets/photos/dashboard/DSC00107.JPEG');
+const DashboardHeroImage = require('../../../assets/photos/dashboard/DSC00107.jpeg');
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
