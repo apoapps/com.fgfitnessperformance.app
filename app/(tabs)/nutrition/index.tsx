@@ -357,9 +357,16 @@ export default function NutritionScreen() {
           <Animated.View entering={FadeIn.duration(300)}>
             <Card variant="glass">
               <View style={{ padding: 16, flexDirection: 'row', alignItems: 'center' }}>
-                {/* Left side - Title and subtitle */}
-                <View style={{ flex: 1, gap: 8 }}>
-                  <ScreenHeader title="FG Nutrition Plan" logoSize={28} />
+                {/* Left side - Logo and Title vertical */}
+                <View style={{ flex: 1, gap: 6 }}>
+                  <Image
+                    source={require('../../../assets/mini-logo-negro.svg')}
+                    style={{ width: 32, height: 24 }}
+                    contentFit="contain"
+                  />
+                  <Text variant="hero" style={{ fontSize: 22, lineHeight: 26 }}>
+                    FG Nutrition{'\n'}Plan
+                  </Text>
                   <Text variant="bodySm" color="textMuted">
                     Tu plan personalizado
                   </Text>
@@ -370,16 +377,19 @@ export default function NutritionScreen() {
                   style={{
                     shadowColor: '#ffd801',
                     shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.5,
-                    shadowRadius: 6,
-                    elevation: 6,
+                    shadowOpacity: 0.6,
+                    shadowRadius: 10,
+                    elevation: 8,
                   }}
                 >
                   <Image
                     source={NutritionistWithApple}
                     style={{
-                      width: 90,
-                      height: 120,
+                      width: 130,
+                      height: 170,
+                      marginRight: -16,
+                      marginTop: -16,
+                      marginBottom: -16,
                     }}
                     contentFit="contain"
                   />
