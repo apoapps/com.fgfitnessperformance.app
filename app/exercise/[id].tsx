@@ -211,11 +211,11 @@ export default function ExerciseDetailScreen() {
       testID="exercise-detail-screen"
       style={{
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#e5e5e5',
       }}
     >
-      {/* Doodle background - subtle on dark */}
-      <FitnessDoodleBackground opacity={0.6} spacing={65} logoFrequency={3} />
+      {/* Doodle background */}
+      <FitnessDoodleBackground opacity={1} spacing={65} logoFrequency={3} />
 
       {/* Top Header Bar - BLACK with logo, back, and question button */}
       <View
@@ -292,15 +292,8 @@ export default function ExerciseDetailScreen() {
           paddingBottom: insets.bottom + 20,
         }}
       >
-        {/* Exercise Info - with semi-transparent dark card */}
-        <View style={{
-          padding: 16,
-          paddingTop: 12,
-          margin: 12,
-          marginTop: 8,
-          backgroundColor: 'rgba(18, 18, 18, 0.95)',
-          borderRadius: 16,
-        }}>
+        {/* Exercise Info */}
+        <View style={{ padding: 16, paddingTop: 12 }}>
           <ExerciseInfo exercise={exercise} />
         </View>
       </ScrollView>
