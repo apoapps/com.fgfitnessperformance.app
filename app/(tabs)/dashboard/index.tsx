@@ -58,7 +58,7 @@ export default function DashboardScreen() {
             <View style={{ height: 3, backgroundColor: '#ffd801', marginTop: 4, borderRadius: 2 }} />
           </View>
 
-          {/* Chat Button - Yellow with Dudas text */}
+          {/* Chat Button - Yellow text */}
           <Pressable
             testID="chat-button"
             onPress={() => router.push('/chat')}
@@ -66,14 +66,11 @@ export default function DashboardScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
-              backgroundColor: pressed ? '#b39700' : '#ffd801',
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              borderRadius: 20,
+              opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Ionicons name="chatbubble-ellipses" size={18} color="#000" />
-            <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>
+            <Ionicons name="chatbubble-ellipses" size={20} color="#ffd801" />
+            <Text style={{ color: '#ffd801', fontSize: 14, fontWeight: '700' }}>
               Dudas
             </Text>
             {unreadCount > 0 && (
@@ -87,7 +84,6 @@ export default function DashboardScreen() {
                   justifyContent: 'center',
                   alignItems: 'center',
                   paddingHorizontal: 4,
-                  marginLeft: 2,
                 }}
               >
                 <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
