@@ -126,8 +126,8 @@ export default function ChatScreen() {
       {/* Subtle doodle pattern background */}
       <DoodleBackground opacity={0.025} scale={0.12} spacing={100} />
 
-      {/* Header - no extra padding since modal handles safe area */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      {/* Header - solid background to cover doodle */}
+      <View style={[styles.header, { backgroundColor: colors.chatBackground, borderBottomColor: colors.border }]}>
         <View style={styles.headerContent}>
           <Pressable
             testID="back-button"
@@ -145,16 +145,11 @@ export default function ChatScreen() {
               style={{ width: 32, height: 24 }}
               contentFit="contain"
             />
-            <View style={{ flex: 1 }}>
-              <Text variant="title" style={styles.headerTitle}>
-                Chat con Coach
-              </Text>
-              <Text variant="caption" color="textMuted">
-                {thread?.assigned_staff?.full_name
-                  ? `Te atiende: ${thread.assigned_staff.full_name}`
-                  : 'Pregunta tus dudas'}
-              </Text>
-            </View>
+            <Text variant="title" style={styles.headerTitle}>
+              {thread?.assigned_staff?.full_name
+                ? `Chat con ${thread.assigned_staff.full_name}`
+                : 'Chat personalizado con tu coach'}
+            </Text>
           </View>
         </View>
       </View>
