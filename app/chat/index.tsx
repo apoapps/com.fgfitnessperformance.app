@@ -15,7 +15,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useChat } from '@/contexts/ChatContext';
-import { Text } from '@/components/ui/Text';
+import { Text, DoodleBackground } from '@/components/ui';
 import { ChatBubble } from '@/components/chat';
 import type { ChatMessage, ChatReferenceType } from '@/types/chat';
 
@@ -122,7 +122,10 @@ export default function ChatScreen() {
   const hasContent = inputText.trim().length > 0;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.chatBackground }]}>
+      {/* Subtle doodle pattern background */}
+      <DoodleBackground opacity={0.025} scale={0.12} spacing={100} />
+
       {/* Header - no extra padding since modal handles safe area */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerContent}>

@@ -14,6 +14,7 @@ export const colors = {
     surface: '#18181b',
     surfaceHighlight: '#27272a',
     surfaceElevated: '#3f3f46',
+    chatBackground: '#0c0c0e',       // Slightly darker for chat
     tabBarBackground: '#18181b',
     tabBarText: '#a1a1aa',           // Zinc 400 - muted for inactive
     tabBarTextActive: '#ffd801',     // Yellow for active tab
@@ -69,17 +70,18 @@ export const colors = {
   },
 
   light: {
-    // Backgrounds - soft white, not glaring
-    background: '#fafafa',
-    surface: '#f8f8f9',              // Slightly off-white (was pure white)
-    surfaceHighlight: '#f0f0f2',     // Darker for cards
-    surfaceElevated: '#e8e8eb',      // More contrast
+    // Backgrounds - warm cream tones, not glaring white
+    background: '#f5f5f4',           // Stone 100 - warm off-white
+    surface: '#fafaf9',              // Stone 50 - soft cream
+    surfaceHighlight: '#e7e5e4',     // Stone 200 - visible contrast for cards
+    surfaceElevated: '#d6d3d1',      // Stone 300 - more contrast
+    chatBackground: '#f0efed',       // Warm gray for chat - cozy feel
 
-    // Tab bar - DARK for contrast with yellow accent
-    tabBarBackground: '#27272a',     // Zinc 800 - dark anchor
-    tabBarText: '#a1a1aa',           // Zinc 400 - muted white for inactive
+    // Tab bar - VERY DARK for strong contrast
+    tabBarBackground: '#18181b',     // Zinc 900 - almost black
+    tabBarText: '#71717a',           // Zinc 500 - muted for inactive
     tabBarTextActive: '#ffd801',     // Yellow for active tab
-    tabBarBorder: '#18181b',         // Zinc 900 - darker border
+    tabBarBorder: '#09090b',         // Zinc 950 - darkest border
 
     primary: '#ffd801',
     primaryDim: 'rgba(202, 138, 4, 0.12)',
