@@ -15,6 +15,9 @@ export const colors = {
     surfaceHighlight: '#27272a',
     surfaceElevated: '#3f3f46',
     tabBarBackground: '#18181b',
+    tabBarText: '#a1a1aa',           // Zinc 400 - muted for inactive
+    tabBarTextActive: '#ffd801',     // Yellow for active tab
+    tabBarBorder: '#27272a',         // Zinc 800
 
     // Primary
     primary: '#ffd801',
@@ -66,11 +69,17 @@ export const colors = {
   },
 
   light: {
+    // Backgrounds - soft white, not glaring
     background: '#fafafa',
-    surface: '#ffffff',
-    surfaceHighlight: '#f4f4f5',
-    surfaceElevated: '#e4e4e7',
-    tabBarBackground: '#f4f4f5',
+    surface: '#f8f8f9',              // Slightly off-white (was pure white)
+    surfaceHighlight: '#f0f0f2',     // Darker for cards
+    surfaceElevated: '#e8e8eb',      // More contrast
+
+    // Tab bar - DARK for contrast with yellow accent
+    tabBarBackground: '#27272a',     // Zinc 800 - dark anchor
+    tabBarText: '#a1a1aa',           // Zinc 400 - muted white for inactive
+    tabBarTextActive: '#ffd801',     // Yellow for active tab
+    tabBarBorder: '#18181b',         // Zinc 900 - darker border
 
     primary: '#ffd801',
     primaryDim: 'rgba(202, 138, 4, 0.12)',
@@ -84,10 +93,11 @@ export const colors = {
     textOnPrimary: '#000000',
     textInverse: '#ffffff',
 
-    border: '#e4e4e7',
-    borderHighlight: '#d4d4d8',
-    borderStrong: '#a1a1aa',
-    divider: '#f4f4f5',
+    // Borders - stronger for card definition
+    border: '#d4d4d8',               // Zinc 300 (was Zinc 200)
+    borderHighlight: '#a1a1aa',      // Zinc 400
+    borderStrong: '#71717a',         // Zinc 500
+    divider: '#e4e4e7',              // Zinc 200
 
     danger: '#dc2626',
     dangerDim: 'rgba(220, 38, 38, 0.10)',
@@ -98,11 +108,13 @@ export const colors = {
     info: '#2563eb',
     infoDim: 'rgba(37, 99, 235, 0.10)',
 
-    glassBackground: 'rgba(255, 255, 255, 0.85)',
-    glassBorder: 'rgba(0, 0, 0, 0.08)',
+    // Glass - better visibility
+    glassBackground: 'rgba(248, 248, 249, 0.92)',
+    glassBorder: 'rgba(0, 0, 0, 0.12)',
     blurIntensity: 60,
 
-    shadowColor: '#71717a',
+    // Shadows - stronger for depth
+    shadowColor: '#52525b',          // Zinc 600 (was Zinc 500)
     glowColor: '#ffd801',
 
     overlayDark: 'rgba(0, 0, 0, 0.5)',

@@ -7,10 +7,13 @@ const THEME_STORAGE_KEY = 'USER_THEME_PREFERENCE';
 
 type ThemePreference = 'system' | 'dark' | 'light';
 
+// Union type of both color schemes
+type ColorTokens = typeof colors.dark | typeof colors.light;
+
 interface ThemeContextType {
   scheme: ColorScheme;
   preference: ThemePreference;
-  colors: typeof colors.dark;
+  colors: ColorTokens;
   isDark: boolean;
   setPreference: (pref: ThemePreference) => void;
 }
