@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import type { NutritionDocument, NutritionMeal } from '@/types/nutrition';
 import React from 'react';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -326,9 +327,7 @@ export default function NutritionScreen() {
                 alignItems: 'center',
               }}
             >
-              <Text variant="hero" color="textMuted">
-                🥗
-              </Text>
+              <Ionicons name="nutrition-outline" size={36} color={colors.textMuted} />
             </View>
             <Text variant="title" style={{ textAlign: 'center' }}>
               No tienes plan de nutrición
