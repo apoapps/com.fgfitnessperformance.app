@@ -230,31 +230,31 @@ export default function ExerciseDetailScreen() {
           justifyContent: 'space-between',
         }}
       >
-        {/* Back Button */}
+        {/* Back Button - Row layout */}
         <Pressable
           testID="back-button"
           onPress={() => router.back()}
           style={({ pressed }) => ({
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 4,
+            gap: 6,
             opacity: pressed ? 0.7 : 1,
-            paddingVertical: 6,
-            paddingRight: 8,
+            paddingVertical: 8,
+            paddingRight: 12,
           })}
         >
-          <Ionicons name="chevron-back" size={22} color="#fff" />
-          <Text variant="bodySm" style={{ color: '#fff', fontWeight: '500' }}>Volver</Text>
+          <Ionicons name="chevron-back" size={24} color="#fff" />
+          <Text style={{ color: '#fff', fontSize: 15, fontWeight: '500' }}>Volver</Text>
         </Pressable>
 
-        {/* Logo centered */}
+        {/* Logo centered - larger */}
         <Image
           source={MiniLogoYellow}
-          style={{ width: 36, height: 27 }}
+          style={{ width: 52, height: 39 }}
           contentFit="contain"
         />
 
-        {/* Question Button - compact yellow */}
+        {/* Coach Button - Yellow */}
         <Pressable
           onPress={() => router.push({
             pathname: '/chat',
@@ -265,17 +265,17 @@ export default function ExerciseDetailScreen() {
             },
           })}
           style={({ pressed }) => ({
-            backgroundColor: pressed ? colors.primaryDark : colors.primary,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 14,
+            backgroundColor: pressed ? '#b39700' : '#ffd801',
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            borderRadius: 16,
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 4,
+            gap: 6,
           })}
         >
-          <Ionicons name="chatbubble-ellipses" size={14} color="#000" />
-          <Text variant="caption" style={{ color: '#000', fontWeight: '600' }}>Coach</Text>
+          <Ionicons name="chatbubble-ellipses" size={16} color="#000" />
+          <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>Coach</Text>
         </Pressable>
       </View>
 
