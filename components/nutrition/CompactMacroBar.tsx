@@ -15,8 +15,13 @@ export const CompactMacroBar = React.memo(function CompactMacroBar({ macros, wat
 
   return (
     <Card variant="glass" style={{ padding: 16 }}>
-      {/* Top row - Calories */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
+      {/* Header */}
+      <Text variant="caption" color="textMuted" style={{ fontSize: 11, marginBottom: 12 }}>
+        DESGLOSE DE TUS OBJETIVOS
+      </Text>
+
+      {/* Top row - Calories aligned left */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 8, marginBottom: 16 }}>
         <Ionicons name="flame" size={20} color={colors.primary} />
         <Text variant="hero" style={{ fontSize: 28, color: colors.text }}>
           {macros.calories}

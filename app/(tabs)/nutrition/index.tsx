@@ -398,6 +398,22 @@ export default function NutritionScreen() {
             </Card>
           </Animated.View>
 
+          {/* Objective Card */}
+          {activePlan.goal && (
+            <Animated.View entering={FadeInDown.delay(50).duration(400)}>
+              <Card variant="glass">
+                <View style={{ padding: 16 }}>
+                  <Text variant="caption" color="textMuted" style={{ fontSize: 11, marginBottom: 8 }}>
+                    OBJETIVO DEL PLAN
+                  </Text>
+                  <Text variant="body" style={{ lineHeight: 22 }}>
+                    {activePlan.goal}
+                  </Text>
+                </View>
+              </Card>
+            </Animated.View>
+          )}
+
           {/* Compact Macro Bar with Water */}
           {macros && (
             <Animated.View entering={FadeInDown.delay(100).duration(400)}>
