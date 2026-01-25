@@ -1,5 +1,5 @@
 import { QuestionButton } from '@/components/chat';
-import { Button, ScreenHeader, Text } from '@/components/ui';
+import { Button, ScreenHeader, Text, FitnessDoodleBackground } from '@/components/ui';
 import { DaySelector, ObjectiveCard, WorkoutBlock } from '@/components/workout';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
@@ -149,11 +149,13 @@ export default function WorkoutScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      {/* Themed fitness doodle background */}
+      <FitnessDoodleBackground opacity={0.03} spacing={90} logoFrequency={3} />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-     
           {/* Header buttons */}
           <View
             style={{

@@ -15,6 +15,13 @@ export const colors = {
     surfaceHighlight: '#27272a',
     surfaceElevated: '#3f3f46',
     chatBackground: '#0c0c0e',       // Slightly darker for chat
+
+    // Dark accents (same in dark mode)
+    accentSurface: '#18181b',        // Dark card backgrounds
+    accentText: '#ffffff',           // Text on dark surfaces
+    sectionHeader: '#27272a',        // Section header backgrounds
+
+    // Tab bar
     tabBarBackground: '#18181b',
     tabBarText: '#a1a1aa',           // Zinc 400 - muted for inactive
     tabBarTextActive: '#ffd801',     // Yellow for active tab
@@ -76,6 +83,11 @@ export const colors = {
     surfaceHighlight: '#e7e5e4',     // Stone 200 - visible contrast for cards
     surfaceElevated: '#d6d3d1',      // Stone 300 - more contrast
     chatBackground: '#f0efed',       // Warm gray for chat - cozy feel
+
+    // Dark accents for light mode - creates contrast & premium feel
+    accentSurface: '#27272a',        // Dark card backgrounds (Zinc 800)
+    accentText: '#fafafa',           // Light text on dark surfaces
+    sectionHeader: '#18181b',        // Dark section header backgrounds
 
     // Tab bar - VERY DARK for strong contrast
     tabBarBackground: '#18181b',     // Zinc 900 - almost black

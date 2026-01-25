@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Button, Card, ScreenHeader } from '@/components/ui';
+import { Text, Button, Card, ScreenHeader, ProfileDoodleBackground } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -79,6 +79,9 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      {/* Themed profile doodle background */}
+      <ProfileDoodleBackground opacity={0.03} spacing={100} logoFrequency={4} />
+
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}

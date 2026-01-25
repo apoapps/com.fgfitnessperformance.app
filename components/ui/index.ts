@@ -6,3 +6,10 @@ export { MeshGradientBanner } from './MeshGradientBanner';
 export { ScreenHeader } from './ScreenHeader';
 export { AnimatedSplash } from './AnimatedSplash';
 export { DoodleBackground } from './DoodleBackground';
+export {
+  ThemedDoodleBackground,
+  FitnessDoodleBackground,
+  NutritionDoodleBackground,
+  ProfileDoodleBackground,
+  ChatDoodleBackground,
+} from './ThemedDoodleBackground';

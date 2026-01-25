@@ -1,5 +1,5 @@
 import { QuestionButton } from '@/components/chat';
-import { Button, Card, ScreenHeader, Text } from '@/components/ui';
+import { Button, Card, ScreenHeader, Text, NutritionDoodleBackground } from '@/components/ui';
 import { CompactMacroBar } from '@/components/nutrition/CompactMacroBar';
 import { useNutrition } from '@/contexts/NutritionContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -344,6 +344,9 @@ export default function NutritionScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      {/* Themed nutrition doodle background */}
+      <NutritionDoodleBackground opacity={0.03} spacing={95} logoFrequency={4} />
+
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
           {/* Header */}
