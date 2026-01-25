@@ -48,34 +48,38 @@ export default function DashboardScreen() {
             justifyContent: 'space-between',
           }}
         >
-          {/* Left Logo */}
-          <Image
-            source={LogoHBlanco}
-            style={{ width: 180, height: 40 }}
-            contentFit="contain"
-          />
+          {/* Left Logo with yellow underline */}
+          <View>
+            <Image
+              source={LogoHBlanco}
+              style={{ width: 180, height: 40 }}
+              contentFit="contain"
+            />
+            <View style={{ height: 3, backgroundColor: '#ffd801', marginTop: 4, borderRadius: 2 }} />
+          </View>
 
-          {/* Chat Button */}
+          {/* Chat Button - Yellow with Dudas text */}
           <Pressable
             testID="chat-button"
             onPress={() => router.push('/chat')}
             style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: pressed ? '#2c2c2e' : 'transparent',
-              justifyContent: 'center',
+              flexDirection: 'row',
               alignItems: 'center',
+              gap: 6,
+              backgroundColor: pressed ? '#b39700' : '#ffd801',
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 20,
             })}
           >
-            <Ionicons name="chatbubble-ellipses-outline" size={24} color="#fff" />
+            <Ionicons name="chatbubble-ellipses" size={18} color="#000" />
+            <Text style={{ color: '#000', fontSize: 13, fontWeight: '700' }}>
+              Dudas
+            </Text>
             {unreadCount > 0 && (
               <View
                 testID="unread-badge"
                 style={{
-                  position: 'absolute',
-                  top: 4,
-                  right: 4,
                   minWidth: 18,
                   height: 18,
                   borderRadius: 9,
@@ -83,6 +87,7 @@ export default function DashboardScreen() {
                   justifyContent: 'center',
                   alignItems: 'center',
                   paddingHorizontal: 4,
+                  marginLeft: 2,
                 }}
               >
                 <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
