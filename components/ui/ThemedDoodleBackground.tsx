@@ -72,8 +72,8 @@ export function ThemedDoodleBackground({
   const { colors, isDark } = useTheme();
   const icons = ICON_SETS[theme];
 
-  const logoSize = 28;
-  const iconSize = 18;
+  const logoSize = 42;  // 50% larger
+  const iconSize = 27;  // 50% larger
   const cols = Math.ceil(SCREEN_WIDTH / spacing) + 1;
   const rows = Math.ceil(SCREEN_HEIGHT / spacing) + 2;
 

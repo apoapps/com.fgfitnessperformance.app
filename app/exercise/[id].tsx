@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text } from '@/components/ui';
+import { Text, FitnessDoodleBackground } from '@/components/ui';
 import { VideoPlayer, ExerciseInfo } from '@/components/exercise';
 import { QuestionButton } from '@/components/chat';
 import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/utils/supabase';
 import type { Exercise } from '@/types/workout';
+
+// Logo for video header
+const MiniLogoBlanco = require('../../assets/mini-logo-blanco.svg');
 
 export default function ExerciseDetailScreen() {
   const { colors } = useTheme();
@@ -210,9 +214,26 @@ export default function ExerciseDetailScreen() {
         backgroundColor: colors.background,
       }}
     >
-      {/* Video with safe area padding for notch/Dynamic Island */}
+      {/* Doodle background */}
+      <FitnessDoodleBackground opacity={1} spacing={70} logoFrequency={3} />
+
+      {/* Video section with logo above */}
       {exercise.video_url && (
-        <View style={{ paddingTop: insets.top, backgroundColor: '#000' }}>
+        <View style={{ backgroundColor: '#000' }}>
+          {/* FG Logo centered above video */}
+          <View
+            style={{
+              paddingTop: insets.top + 8,
+              paddingBottom: 12,
+              alignItems: 'center',
+            }}
+          >
+            <Image
+              source={MiniLogoBlanco}
+              style={{ width: 40, height: 30 }}
+              contentFit="contain"
+            />
+          </View>
           <VideoPlayer
             url={exercise.video_url}
             thumbnailUrl={exercise.thumbnail_url}
@@ -246,10 +267,12 @@ export default function ExerciseDetailScreen() {
           <Text variant="body" style={{ fontWeight: '500' }}>Volver</Text>
         </Pressable>
 
+        {/* Prominent Question Button */}
         <QuestionButton
           referenceType="exercise"
           referenceId={exercise.id}
           referenceTag={`[${exercise.name}]`}
+          prominent
         />
       </View>
 

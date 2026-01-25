@@ -11,6 +11,7 @@ interface QuestionButtonProps {
   referenceId: string;
   referenceTag: string;
   compact?: boolean;
+  prominent?: boolean; // Yellow background, high contrast
 }
 
 export function QuestionButton({
@@ -18,6 +19,7 @@ export function QuestionButton({
   referenceId,
   referenceTag,
   compact = false,
+  prominent = false,
 }: QuestionButtonProps) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -32,6 +34,32 @@ export function QuestionButton({
       },
     });
   };
+
+  // Prominent style - yellow bg, dark text
+  if (prominent) {
+    return (
+      <Pressable
+        testID={`question-button-${referenceType}`}
+        onPress={handlePress}
+        style={({ pressed }) => [
+          styles.prominentButton,
+          {
+            backgroundColor: pressed ? colors.primaryDark : colors.primary,
+          },
+        ]}
+      >
+        <Ionicons
+          testID="question-icon"
+          name="chatbubble-ellipses"
+          size={18}
+          color={colors.textOnPrimary}
+        />
+        <Text variant="bodySm" style={{ color: colors.textOnPrimary, fontWeight: '600' }}>
+          Preguntar al Coach
+        </Text>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -77,5 +105,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  prominentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
 });
