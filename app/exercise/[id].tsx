@@ -11,8 +11,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/utils/supabase';
 import type { Exercise } from '@/types/workout';
 
-// Logo for video header
-const MiniLogoBlanco = require('../../assets/mini-logo-blanco.svg');
+// Logo for exercise header
+const MiniLogoYellow = require('../../assets/mini-logo-yellow.svg');
 
 export default function ExerciseDetailScreen() {
   const { colors } = useTheme();
@@ -249,7 +249,7 @@ export default function ExerciseDetailScreen() {
 
         {/* Logo centered */}
         <Image
-          source={MiniLogoBlanco}
+          source={MiniLogoYellow}
           style={{ width: 36, height: 27 }}
           contentFit="contain"
         />
