@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, Dimensions, Text as RNText } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const MiniLogoBlanco = require('../../assets/mini-logo-blanco.svg');
@@ -8,36 +9,76 @@ const MiniLogoNegro = require('../../assets/mini-logo-negro.svg');
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Icon sets for different themes
+// Ionicons names for different themes (monochromatic)
 const ICON_SETS = {
-  fitness: ['🏋️', '💪', '🔥', '⚡', '🎯', '💥', '🏃', '⭐'],
-  nutrition: ['🍎', '🍌', '🥑', '🥦', '🍗', '🥚', '💧', '🥗'],
-  profile: ['👤', '⚙️', '📊', '🎖️', '🏆', '📈', '💫', '✨'],
-  chat: ['💬', '📝', '💡', '🎯', '✅', '📌', '🔔', '💪'],
+  fitness: [
+    'barbell-outline',
+    'flame-outline',
+    'flash-outline',
+    'fitness-outline',
+    'heart-outline',
+    'trophy-outline',
+    'star-outline',
+    'rocket-outline',
+  ],
+  nutrition: [
+    'nutrition-outline',
+    'leaf-outline',
+    'water-outline',
+    'restaurant-outline',
+    'cafe-outline',
+    'fish-outline',
+    'egg-outline',
+    'pizza-outline',
+  ],
+  profile: [
+    'person-outline',
+    'settings-outline',
+    'stats-chart-outline',
+    'medal-outline',
+    'ribbon-outline',
+    'trending-up-outline',
+    'sparkles-outline',
+    'shield-checkmark-outline',
+  ],
+  chat: [
+    'chatbubble-outline',
+    'document-text-outline',
+    'bulb-outline',
+    'checkmark-circle-outline',
+    'bookmark-outline',
+    'notifications-outline',
+    'send-outline',
+    'happy-outline',
+  ],
 } as const;
 
 type ThemeType = keyof typeof ICON_SETS;
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface ThemedDoodleBackgroundProps {
   theme: ThemeType;
   opacity?: number;
   spacing?: number;
-  logoFrequency?: number; // How often to show logo vs icons (1 = every item, 3 = every 3rd item)
+  logoFrequency?: number;
 }
 
 export function ThemedDoodleBackground({
   theme,
-  opacity = 0.04,
-  spacing = 90,
+  opacity = 0.06,
+  spacing = 85,
   logoFrequency = 4,
 }: ThemedDoodleBackgroundProps) {
   const { colors, isDark } = useTheme();
   const icons = ICON_SETS[theme];
 
-  const logoSize = 36;
-  const iconSize = 24;
+  const logoSize = 32;
+  const iconSize = 20;
   const cols = Math.ceil(SCREEN_WIDTH / spacing) + 1;
   const rows = Math.ceil(SCREEN_HEIGHT / spacing) + 2;
+
+  // Color for icons - subtle monochrome
+  const iconColor = isDark ? colors.textMuted : colors.textMuted;
 
   const items = useMemo(() => {
     const elements = [];
@@ -48,7 +89,7 @@ export function ThemedDoodleBackground({
         const offsetX = row % 2 === 0 ? 0 : spacing / 2;
         const x = col * spacing + offsetX;
         const y = row * spacing;
-        const rotation = ((row + col) % 5 - 2) * 6;
+        const rotation = ((row + col) % 5 - 2) * 8;
         const itemIndex = row * cols + col;
         const showLogo = itemIndex % logoFrequency === 0;
 
@@ -74,8 +115,8 @@ export function ThemedDoodleBackground({
             </View>
           );
         } else {
-          // Show themed icon
-          const icon = icons[iconIndex % icons.length];
+          // Show themed Ionicon
+          const iconName = icons[iconIndex % icons.length] as IoniconName;
           iconIndex++;
 
           elements.push(
@@ -92,21 +133,18 @@ export function ThemedDoodleBackground({
                 alignItems: 'center',
               }}
             >
-              <RNText
-                style={{
-                  fontSize: iconSize * 0.8,
-                  opacity: isDark ? 0.6 : 0.5,
-                }}
-              >
-                {icon}
-              </RNText>
+              <Ionicons
+                name={iconName}
+                size={iconSize}
+                color={iconColor}
+              />
             </View>
           );
         }
       }
     }
     return elements;
-  }, [cols, rows, spacing, logoSize, iconSize, isDark, icons, logoFrequency]);
+  }, [cols, rows, spacing, logoSize, iconSize, isDark, icons, logoFrequency, iconColor]);
 
   return (
     <View style={[StyleSheet.absoluteFill, { opacity }]} pointerEvents="none">
