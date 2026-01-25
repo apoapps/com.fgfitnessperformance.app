@@ -6,7 +6,8 @@ import { useWorkout } from '@/contexts/WorkoutContext';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
@@ -156,35 +157,34 @@ export default function WorkoutScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-          {/* Plan Title with Logo - Card */}
+          {/* Plan Title Card - Dark with yellow accent */}
           <Animated.View
-            style={{ paddingHorizontal: 20, paddingTop: 16 }}
+            style={{ paddingHorizontal: 20, paddingTop: 16, gap: 12 }}
             entering={FadeIn.duration(300)}
           >
             <View
               style={{
-                backgroundColor: colors.surface,
+                backgroundColor: '#1c1c1e',
                 borderRadius: 16,
-                padding: 16,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                elevation: 3,
+                padding: 20,
+                borderLeftWidth: 4,
+                borderLeftColor: '#ffd801',
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              {/* Title Row */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <Image
-                  source={isDark ? MiniLogoBlanco : MiniLogoNegro}
-                  style={{ width: 32, height: 24 }}
+                  source={MiniLogoBlanco}
+                  style={{ width: 36, height: 27 }}
                   contentFit="contain"
                 />
                 <Text
                   variant="hero"
                   style={{
-                    fontSize: 22,
+                    fontSize: 20,
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
+                    color: '#ffd801',
                     flex: 1,
                   }}
                 >
@@ -192,26 +192,57 @@ export default function WorkoutScreen() {
                 </Text>
               </View>
 
-              {/* Plan Goal */}
+              {/* Goal with label */}
               {workoutPlan.goal && (
-                <Text
-                  variant="body"
-                  color="textMuted"
-                  style={{ marginTop: 8 }}
-                >
-                  {workoutPlan.goal}
-                </Text>
+                <View style={{ marginTop: 14 }}>
+                  <Text
+                    variant="caption"
+                    style={{
+                      color: 'rgba(255,255,255,0.5)',
+                      fontSize: 11,
+                      fontWeight: '600',
+                      letterSpacing: 1,
+                      marginBottom: 4,
+                    }}
+                  >
+                    OBJETIVO
+                  </Text>
+                  <Text
+                    variant="body"
+                    style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 22 }}
+                  >
+                    {workoutPlan.goal}
+                  </Text>
+                </View>
               )}
-
-              {/* Question Button */}
-              <View style={{ marginTop: 12, alignItems: 'flex-start' }}>
-                <QuestionButton
-                  referenceType="workout"
-                  referenceId={`${workoutPlan.id}-day${selectedDay}`}
-                  referenceTag={`[${workoutPlan.title} - Día ${selectedDay}]`}
-                />
-              </View>
             </View>
+
+            {/* Question Button - Outside card, prominent */}
+            <Pressable
+              onPress={() => router.push({
+                pathname: '/chat',
+                params: {
+                  referenceType: 'workout',
+                  referenceId: `${workoutPlan.id}-day${selectedDay}`,
+                  referenceTag: `[${workoutPlan.title} - Día ${selectedDay}]`,
+                },
+              })}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                backgroundColor: pressed ? '#e5c200' : '#ffd801',
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                borderRadius: 12,
+              })}
+            >
+              <Ionicons name="chatbubble-ellipses" size={18} color="#000" />
+              <Text style={{ color: '#000', fontSize: 14, fontWeight: '600' }}>
+                ¿Dudas? Pregunta al Coach
+              </Text>
+            </Pressable>
           </Animated.View>
 
         {/* Main Content */}
