@@ -77,12 +77,12 @@ export const colors = {
   },
 
   light: {
-    // Backgrounds - warm cream tones, not glaring white
-    background: '#f5f5f4',           // Stone 100 - warm off-white
-    surface: '#fafaf9',              // Stone 50 - soft cream
-    surfaceHighlight: '#e7e5e4',     // Stone 200 - visible contrast for cards
-    surfaceElevated: '#d6d3d1',      // Stone 300 - more contrast
-    chatBackground: '#f0efed',       // Warm gray for chat - cozy feel
+    // Backgrounds - warm tones with card contrast
+    background: '#f7f7f6',           // Lighter base so cards stand out
+    surface: '#efeeed',              // Cards - noticeably darker than bg
+    surfaceHighlight: '#e5e4e2',     // Input fields, hover states
+    surfaceElevated: '#dddbd9',      // Elevated elements
+    chatBackground: '#f2f1ef',       // Warm gray for chat
 
     // Dark accents for light mode - creates contrast & premium feel
     accentSurface: '#27272a',        // Dark card backgrounds (Zinc 800)
@@ -122,9 +122,9 @@ export const colors = {
     info: '#2563eb',
     infoDim: 'rgba(37, 99, 235, 0.10)',
 
-    // Glass - better visibility
-    glassBackground: 'rgba(248, 248, 249, 0.92)',
-    glassBorder: 'rgba(0, 0, 0, 0.12)',
+    // Glass - matches new surface tone
+    glassBackground: 'rgba(239, 238, 237, 0.95)',
+    glassBorder: 'rgba(0, 0, 0, 0.08)',
     blurIntensity: 60,
 
     // Shadows - stronger for depth
