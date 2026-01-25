@@ -290,10 +290,23 @@ export default function ExerciseDetailScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 20,
+          paddingHorizontal: 12,
+          paddingTop: 12,
         }}
       >
-        {/* Exercise Info */}
-        <View style={{ padding: 16, paddingTop: 12 }}>
+        {/* Exercise Info - wrapped in card */}
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+            elevation: 3,
+          }}
+        >
           <ExerciseInfo exercise={exercise} />
         </View>
       </ScrollView>
