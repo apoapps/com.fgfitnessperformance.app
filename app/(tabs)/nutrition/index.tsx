@@ -6,9 +6,14 @@ import { useTheme } from '@/contexts/ThemeContext';
 import type { NutritionDocument, NutritionMeal } from '@/types/nutrition';
 import React from 'react';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+
+// Nutrition hero images
+const NutritionistWithFood = require('../../../assets/photos/nutrition/DSC00178.png');
+const NutritionistWithApple = require('../../../assets/photos/nutrition/DSC00186.png');
 
 interface MacroStatProps {
   label: string;
@@ -348,9 +353,34 @@ export default function NutritionScreen() {
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 24 }}>
-          {/* Header */}
+          {/* Header with Nutritionist Image */}
           <Animated.View entering={FadeIn.duration(300)}>
-            <ScreenHeader title="FG Nutrition Plan" logoSize={28} />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1 }}>
+                <ScreenHeader title="FG Nutrition Plan" logoSize={28} />
+              </View>
+              {/* Nutritionist floating image with glow stroke effect */}
+              <View
+                style={{
+                  shadowColor: '#ffd801',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.6,
+                  shadowRadius: 8,
+                  elevation: 8,
+                }}
+              >
+                <Image
+                  source={NutritionistWithApple}
+                  style={{
+                    width: 100,
+                    height: 140,
+                    marginTop: -10,
+                    marginRight: -10,
+                  }}
+                  contentFit="contain"
+                />
+              </View>
+            </View>
           </Animated.View>
 
           {/* Compact Macro Bar with Water */}

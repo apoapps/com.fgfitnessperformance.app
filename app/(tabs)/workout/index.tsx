@@ -15,6 +15,9 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 const MiniLogoBlanco = require('../../../assets/mini-logo-blanco.svg');
 const MiniLogoNegro = require('../../../assets/mini-logo-negro.svg');
 
+// Hero image for workout
+const WorkoutHeroImage = require('../../../assets/photos/workout/DSC00129.jpeg');
+
 // Get block label (A, B, C, etc.)
 function getBlockLabel(index: number): string {
   return String.fromCharCode(65 + index); // 65 is ASCII for 'A'
@@ -157,64 +160,103 @@ export default function WorkoutScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-          {/* Plan Title Card - Dark with yellow accent */}
+          {/* Plan Title Card - With hero image */}
           <Animated.View
             style={{ paddingHorizontal: 20, paddingTop: 16, gap: 12 }}
             entering={FadeIn.duration(300)}
           >
             <View
               style={{
-                backgroundColor: '#1c1c1e',
                 borderRadius: 16,
-                padding: 20,
-                borderLeftWidth: 4,
-                borderLeftColor: '#ffd801',
+                overflow: 'hidden',
+                minHeight: 180,
               }}
             >
-              {/* Title Row */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Image
-                  source={MiniLogoBlanco}
-                  style={{ width: 36, height: 27 }}
-                  contentFit="contain"
-                />
-                <Text
-                  variant="hero"
-                  style={{
-                    fontSize: 20,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    color: '#ffd801',
-                    flex: 1,
-                  }}
-                >
-                  {workoutPlan.title}
-                </Text>
-              </View>
+              {/* Background Image */}
+              <Image
+                source={WorkoutHeroImage}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+                contentFit="cover"
+                contentPosition="top"
+              />
 
-              {/* Goal with label */}
-              {workoutPlan.goal && (
-                <View style={{ marginTop: 14 }}>
+              {/* Dark Overlay */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0,0,0,0.65)',
+                }}
+              />
+
+              {/* Yellow accent border */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  width: 4,
+                  backgroundColor: '#ffd801',
+                }}
+              />
+
+              {/* Content */}
+              <View style={{ padding: 20, zIndex: 1 }}>
+                {/* Title Row */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Image
+                    source={MiniLogoBlanco}
+                    style={{ width: 36, height: 27 }}
+                    contentFit="contain"
+                  />
                   <Text
-                    variant="caption"
+                    variant="hero"
                     style={{
-                      color: 'rgba(255,255,255,0.5)',
-                      fontSize: 11,
-                      fontWeight: '600',
-                      letterSpacing: 1,
-                      marginBottom: 4,
+                      fontSize: 20,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      color: '#ffd801',
+                      flex: 1,
                     }}
                   >
-                    OBJETIVO
-                  </Text>
-                  <Text
-                    variant="body"
-                    style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 22 }}
-                  >
-                    {workoutPlan.goal}
+                    {workoutPlan.title}
                   </Text>
                 </View>
-              )}
+
+                {/* Goal with label */}
+                {workoutPlan.goal && (
+                  <View style={{ marginTop: 14 }}>
+                    <Text
+                      variant="caption"
+                      style={{
+                        color: 'rgba(255,255,255,0.6)',
+                        fontSize: 11,
+                        fontWeight: '600',
+                        letterSpacing: 1,
+                        marginBottom: 4,
+                      }}
+                    >
+                      OBJETIVO
+                    </Text>
+                    <Text
+                      variant="body"
+                      style={{ color: 'rgba(255,255,255,0.9)', lineHeight: 22 }}
+                    >
+                      {workoutPlan.goal}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
 
             {/* Question Button - Compact like exercise detail */}
