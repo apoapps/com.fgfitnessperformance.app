@@ -23,7 +23,7 @@
           "image-name" : "mini-logo-yellow.svg",
           "name" : "mini-logo-yellow",
           "position" : {
-            "scale" : 2.5,
+            "scale" : 3,
             "translation-in-points" : [
               0,
               0

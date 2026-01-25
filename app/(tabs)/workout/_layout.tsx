@@ -9,6 +9,8 @@ export default function WorkoutLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
+        animation: 'fade', // Cambio a fade para consistencia
+        animationDuration: 250,
       }}
     >
       <Stack.Screen name="index" />
@@ -16,6 +18,7 @@ export default function WorkoutLayout() {
         name="[id]"
         options={{
           presentation: 'card',
+          animation: 'fade',
         }}
       />
     </Stack>
