@@ -19,7 +19,19 @@
     {
       "layers" : [
         {
+          "image-name" : "FG1 1.png",
+          "name" : "FG1 1",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -0.5,
+              17
+            ]
+          }
+        },
+        {
           "glass" : true,
+          "hidden" : true,
           "image-name" : "mini-logo-yellow.svg",
           "name" : "mini-logo-yellow",
           "position" : {

@@ -11,6 +11,7 @@ import { useProfile } from '@/contexts/ProfileContext';
 import { useWorkout } from '@/contexts/WorkoutContext';
 import { useNutrition } from '@/contexts/NutritionContext';
 import { useChat } from '@/contexts/ChatContext';
+import { shadows } from '@/constants/design-tokens';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 // Logos
@@ -163,136 +164,177 @@ export default function DashboardScreen() {
 
           {/* Status Grid */}
           <Animated.View
-            style={{ gap: 12 }}
+            style={{ flexDirection: 'row', gap: 16 }}
             entering={FadeInDown.delay(100).duration(400)}
           >
-            {/* Workout Plan Card */}
-            <Pressable
-              testID="workout-status-card"
-              onPress={() => router.push('/(tabs)/workout')}
-              style={({ pressed }) => ({
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
-                borderRadius: 16,
-                padding: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderWidth: 1,
-                borderColor: colors.border,
-              })}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: workoutPlan ? colors.primary + '20' : colors.surfaceHighlight,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
+            {/* Left Column: Profile Card (Large) */}
+            <View style={{ flex: 1 }}>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: 12,
+                  padding: 24,
+                  paddingBottom: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <Pressable
+                  testID="profile-status-card"
+                  onPress={() => router.push('/(tabs)/profile')}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    opacity: pressed ? 0.8 : 1,
+                    justifyContent: 'space-between',
+                  })}
                 >
-                  <Ionicons
-                    name={workoutPlan ? 'barbell' : 'barbell-outline'}
-                    size={24}
-                    color={workoutPlan ? colors.primary : colors.textMuted}
-                  />
-                </View>
-                <View style={{ gap: 2 }}>
-                  <Text variant="bodyMedium" style={{ fontSize: 16 }}>
-                    {workoutPlan ? 'Plan de Entrenamiento' : 'Sin Plan Asignado'}
-                  </Text>
-                  <Text variant="bodySm" color="textMuted">
-                    {workoutPlan ? `${totalDays} días de rutinas` : 'Contacta a tu coach'}
-                  </Text>
-                </View>
+                  <View style={{ gap: 16 }}>
+                    <View
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 32,
+                        backgroundColor: colors.surfaceHighlight,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Ionicons name="person" size={32} color={colors.textMuted} />
+                    </View>
+                    <View style={{ gap: 6 }}>
+                      <Text variant="bodyMedium" style={{ fontSize: 18, color: colors.text }}>
+                        Mi Perfil
+                      </Text>
+                      <Text variant="bodySm" color="textMuted" style={{ fontSize: 13 }}>
+                        Configuración y ajustes
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                  </View>
+                </Pressable>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
+            </View>
 
-            {/* Nutrition Plan Card */}
-            <Pressable
-              testID="nutrition-status-card"
-              onPress={() => router.push('/(tabs)/nutrition')}
-              style={({ pressed }) => ({
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
-                borderRadius: 16,
-                padding: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderWidth: 1,
-                borderColor: colors.border,
-              })}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: nutritionPlan ? colors.primary + '20' : colors.surfaceHighlight,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
+            {/* Right Column: Workout & Nutrition Cards (Stacked) */}
+            <View style={{ flex: 1, gap: 16 }}>
+              {/* Workout Plan Card */}
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: 12,
+                  padding: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <Pressable
+                  testID="workout-status-card"
+                  onPress={() => router.push('/(tabs)/workout')}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    opacity: pressed ? 0.8 : 1,
+                  })}
                 >
-                  <Ionicons
-                    name={nutritionPlan ? 'nutrition' : 'nutrition-outline'}
-                    size={24}
-                    color={nutritionPlan ? colors.primary : colors.textMuted}
-                  />
-                </View>
-                <View style={{ gap: 2 }}>
-                  <Text variant="bodyMedium" style={{ fontSize: 16 }}>
-                    {nutritionPlan ? 'Plan de Nutrición' : 'Sin Plan Asignado'}
-                  </Text>
-                  <Text variant="bodySm" color="textMuted">
-                    {nutritionPlan ? 'Ver macros y comidas' : 'Contacta a tu coach'}
-                  </Text>
-                </View>
+                  <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                    <View style={{ gap: 12 }}>
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 24,
+                          backgroundColor: workoutPlan ? colors.primary + '20' : colors.surfaceHighlight,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Ionicons
+                          name={workoutPlan ? 'barbell' : 'barbell-outline'}
+                          size={24}
+                          color={workoutPlan ? colors.primary : colors.textMuted}
+                        />
+                      </View>
+                      <View style={{ gap: 4 }}>
+                        <Text variant="bodyMedium" style={{ fontSize: 15, color: colors.text }}>
+                          {workoutPlan ? 'Plan de Entrenamiento' : 'Sin Plan'}
+                        </Text>
+                        <Text variant="bodySm" color="textMuted" style={{ fontSize: 12 }}>
+                          {workoutPlan ? `${totalDays} días` : 'Contacta coach'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                    </View>
+                  </View>
+                </Pressable>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
 
-            {/* Profile Card */}
-            <Pressable
-              testID="profile-status-card"
-              onPress={() => router.push('/(tabs)/profile')}
-              style={({ pressed }) => ({
-                backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
-                borderRadius: 16,
-                padding: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderWidth: 1,
-                borderColor: colors.border,
-              })}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: colors.surfaceHighlight,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
+              {/* Nutrition Plan Card */}
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: 12,
+                  padding: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <Pressable
+                  testID="nutrition-status-card"
+                  onPress={() => router.push('/(tabs)/nutrition')}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    opacity: pressed ? 0.8 : 1,
+                  })}
                 >
-                  <Ionicons name="person" size={24} color={colors.textMuted} />
-                </View>
-                <View style={{ gap: 2 }}>
-                  <Text variant="bodyMedium" style={{ fontSize: 16 }}>
-                    Mi Perfil
-                  </Text>
-                  <Text variant="bodySm" color="textMuted">
-                    Configuración y ajustes
-                  </Text>
-                </View>
+                  <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                    <View style={{ gap: 12 }}>
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 24,
+                          backgroundColor: nutritionPlan ? colors.primary + '20' : colors.surfaceHighlight,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Ionicons
+                          name={nutritionPlan ? 'nutrition' : 'nutrition-outline'}
+                          size={24}
+                          color={nutritionPlan ? colors.primary : colors.textMuted}
+                        />
+                      </View>
+                      <View style={{ gap: 4 }}>
+                        <Text variant="bodyMedium" style={{ fontSize: 15, color: colors.text }}>
+                          {nutritionPlan ? 'Plan de Nutrición' : 'Sin Plan'}
+                        </Text>
+                        <Text variant="bodySm" color="textMuted" style={{ fontSize: 12 }}>
+                          {nutritionPlan ? 'Ver macros' : 'Contacta coach'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                    </View>
+                  </View>
+                </Pressable>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-            </Pressable>
+            </View>
           </Animated.View>
         </View>
         </ScrollView>

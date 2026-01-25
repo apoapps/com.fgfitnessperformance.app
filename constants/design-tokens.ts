@@ -79,7 +79,7 @@ export const colors = {
   light: {
     // Backgrounds - warm tones with card contrast
     background: '#f7f7f6',           // Lighter base so cards stand out
-    surface: '#efeeed',              // Cards - noticeably darker than bg
+    surface: '#ffffff',              // Cards - white for maximum contrast
     surfaceHighlight: '#e5e4e2',     // Input fields, hover states
     surfaceElevated: '#dddbd9',      // Elevated elements
     chatBackground: '#f2f1ef',       // Warm gray for chat
