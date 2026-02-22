@@ -332,6 +332,17 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           break;
         }
 
+        case 'AUTH_NEEDED':
+        case 'AUTH_EXPIRED':
+        case 'AUTH_ERROR':
+          // useWebViewAuth hook already handles this by re-injecting the session.
+          // Only redirect to login if there's genuinely no native session.
+          if (!isAuthenticated) {
+            track('webview_auth_redirect', { screen: title, reason: msg.type });
+            router.replace('/(auth)/login');
+          }
+          break;
+
         case 'OPEN_SHEET':
           track('webview_open_sheet', { screen: title, sheet: msg.sheet });
           break;
@@ -340,7 +351,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           break;
       }
     },
-    [handleAuthMessage, isFirstReady, title, path, router],
+    [handleAuthMessage, isFirstReady, isAuthenticated, title, path, router],
   );
 
   // ---------- Navigation filter (allow FG domain + video embeds) ----------

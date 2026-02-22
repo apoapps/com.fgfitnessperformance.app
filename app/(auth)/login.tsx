@@ -9,6 +9,7 @@ import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { Text, Button, Card, Input } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,14 +53,8 @@ export default function LoginScreen() {
   }, [isAuthenticated]);
 
   /**
-   * Standard auth flow using ASWebAuthenticationSession (iOS) / Custom Chrome Tabs (Android).
-   *
-   * 1. Generate random state for CSRF protection
-   * 2. Open web login in native auth browser (Turnstile works here)
-   * 3. After login, web generates one-time code and redirects to /auth/mobile/complete
-   * 4. ASWebAuthenticationSession captures the redirect URL
-   * 5. Exchange code for session tokens via POST to /api/auth/mobile/exchange
-   * 6. Set session in Supabase client
+   * Primary login: try direct Supabase auth (no browser needed).
+   * Falls back to browser-based login only if captcha is enforced server-side.
    */
   const handleLogin = async () => {
     if (!email || !password) return;
@@ -69,74 +64,104 @@ export default function LoginScreen() {
     setLocalLoading(true);
 
     try {
-      // Generate random state for CSRF protection
-      const state = generateUUID();
+      // Try direct signInWithPassword — works if captcha is not enforced server-side
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-      // Build login URL with mobile flag and state
-      const loginUrl = `${WEB_APP_URL}/login?mobile=1&state=${encodeURIComponent(state)}`;
+      if (!authError && data.session) {
+        // Success — AuthContext onAuthStateChange picks up session
+        // useEffect above redirects to /(tabs)/dashboard
+        return;
+      }
 
-      // The redirect URL that ASWebAuthenticationSession will watch for
-      const redirectUrl = `${WEB_APP_URL}/auth/mobile/complete`;
-
-      // Open in ASWebAuthenticationSession (iOS) / Custom Chrome Tab (Android)
-      // This is a REAL browser, not a WebView — Turnstile works perfectly
-      const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
-
-      if (result.type === 'success' && result.url) {
-        const url = new URL(result.url);
-        const code = url.searchParams.get('code');
-        const returnedState = url.searchParams.get('state');
-
-        // Verify state matches (CSRF protection)
-        if (returnedState !== state) {
-          setLocalError('Sesion invalida. Intenta de nuevo.');
+      if (authError) {
+        // Captcha enforced server-side → fall back to browser with Turnstile
+        if (authError.message?.toLowerCase().includes('captcha')) {
+          await handleBrowserLogin();
           return;
         }
 
-        if (!code) {
-          setLocalError('No se recibio codigo de autorizacion.');
-          return;
-        }
-
-        // Exchange one-time code for session tokens
-        const response = await fetch(`${WEB_APP_URL}/api/auth/mobile/exchange`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          setLocalError(
-            errorData.message || 'Error al verificar. Intenta de nuevo.'
-          );
-          return;
-        }
-
-        const { access_token, refresh_token } = await response.json();
-
-        // Set session in Supabase client (stored in SecureStore)
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
-
-        if (sessionError) {
-          setLocalError('Error al establecer sesion. Intenta de nuevo.');
-          return;
-        }
-
-        // AuthContext's onAuthStateChange will pick up the session
-        // and redirect to dashboard
-      } else if (result.type === 'cancel') {
-        // User cancelled the auth flow — do nothing
-      } else {
-        setLocalError('No se pudo completar el inicio de sesion.');
+        // Map common errors to Spanish
+        const msg =
+          authError.message === 'Invalid login credentials'
+            ? 'Email o contraseña incorrectos.'
+            : authError.message;
+        setLocalError(msg);
       }
     } catch (err) {
       setLocalError('Error de conexion. Intenta de nuevo.');
     } finally {
       setLocalLoading(false);
+    }
+  };
+
+  /**
+   * Browser-based login fallback (when server-side captcha is enforced).
+   * Uses ASWebAuthenticationSession (iOS) / Custom Chrome Tab (Android).
+   * Turnstile works in real browsers, unlike WebViews.
+   */
+  const handleBrowserLogin = async () => {
+    const state = generateUUID();
+
+    // Pre-fill email in web login form
+    const loginUrl = `${WEB_APP_URL}/login?mobile=1&state=${encodeURIComponent(state)}&email=${encodeURIComponent(email.trim())}`;
+
+    // Use custom scheme — captured directly by ASWebAuthenticationSession
+    // (HTTPS redirect requires Universal Links which may not be configured)
+    const redirectUrl = Linking.createURL('auth-complete');
+
+    const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
+
+    if (result.type === 'success' && result.url) {
+      const url = new URL(result.url);
+      const code = url.searchParams.get('code');
+      const returnedState = url.searchParams.get('state');
+
+      // Verify state matches (CSRF protection)
+      if (returnedState !== state) {
+        setLocalError('Sesion invalida. Intenta de nuevo.');
+        return;
+      }
+
+      if (!code) {
+        setLocalError('No se recibio codigo de autorizacion.');
+        return;
+      }
+
+      // Exchange one-time code for session tokens
+      const response = await fetch(`${WEB_APP_URL}/api/auth/mobile/exchange`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setLocalError(errorData.message || 'Error al verificar. Intenta de nuevo.');
+        return;
+      }
+
+      const { access_token, refresh_token } = await response.json();
+
+      // Set session in Supabase client (stored in SecureStore)
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+
+      if (sessionError) {
+        setLocalError('Error al establecer sesion. Intenta de nuevo.');
+        return;
+      }
+
+      // AuthContext's onAuthStateChange will pick up the session
+      // and redirect to dashboard
+    } else if (result.type === 'cancel') {
+      // User cancelled — do nothing
+    } else {
+      setLocalError('No se pudo completar el inicio de sesion.');
     }
   };
 
@@ -233,14 +258,6 @@ export default function LoginScreen() {
                 disabled={!email || !password || isSubmitting}
                 testID="login-button"
               />
-
-              <Text
-                variant="caption"
-                color="textMuted"
-                style={{ textAlign: 'center' }}
-              >
-                El inicio de sesion se completara en el navegador.
-              </Text>
 
               <Text
                 variant="caption"
