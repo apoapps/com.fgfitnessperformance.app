@@ -13,12 +13,35 @@
       "bundleIdentifier": "com.apoapps.fgfitnessperformance",
       "buildNumber": "3",
       "icon": "./assets/ios/icon.icon",
+      "associatedDomains": [
+        "applinks:prod.fgfitnessperformance.com",
+        "webcredentials:prod.fgfitnessperformance.com"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.apoapps.fgfitnessperformance",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "prod.fgfitnessperformance.com",
+              "pathPrefix": "/auth/mobile"
+            },
+            {
+              "scheme": "https",
+              "host": "prod.fgfitnessperformance.com",
+              "pathPrefix": "/app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#09090b",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

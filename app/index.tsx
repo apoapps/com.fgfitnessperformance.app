@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,7 +23,7 @@ export default function Index() {
         try {
           const lastTab = await AsyncStorage.getItem(LAST_TAB_KEY);
           const targetTab = (lastTab && VALID_TABS.includes(lastTab)) ? lastTab : 'dashboard';
-          router.replace(`/(tabs)/${targetTab}`);
+          router.replace(`/(tabs)/${targetTab}` as Href);
         } catch {
           // If AsyncStorage fails, just go to dashboard
           router.replace('/(tabs)/dashboard');

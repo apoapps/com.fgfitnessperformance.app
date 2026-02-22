@@ -8,7 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
 }
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -57,6 +57,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken,
+        },
       });
 
       if (error) {
