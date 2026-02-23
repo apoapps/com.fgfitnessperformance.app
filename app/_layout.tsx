@@ -3,10 +3,6 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { ProfileProvider } from '@/contexts/ProfileContext';
-import { WorkoutProvider } from '@/contexts/WorkoutContext';
-import { NutritionProvider } from '@/contexts/NutritionContext';
-import { ChatProvider } from '@/contexts/ChatContext';
 import { AnimatedSplash } from '@/components/ui';
 import '../global.css';
 
@@ -33,20 +29,6 @@ function RootLayoutContent() {
           name="(tabs)"
           options={{
             animation: 'fade',
-          }}
-        />
-        <Stack.Screen
-          name="chat"
-          options={{
-            presentation: 'modal',
-            animation: 'fade_from_bottom', // Fade en lugar de slide
-          }}
-        />
-        <Stack.Screen
-          name="exercise"
-          options={{
-            presentation: 'modal',
-            animation: 'fade_from_bottom',
           }}
         />
       </Stack>
@@ -84,15 +66,7 @@ export default function RootLayout() {
     <ThemeProvider>
       <AuthProvider>
         <SplashController>
-          <ProfileProvider>
-            <WorkoutProvider>
-              <NutritionProvider>
-                <ChatProvider>
-                  <RootLayoutContent />
-                </ChatProvider>
-              </NutritionProvider>
-            </WorkoutProvider>
-          </ProfileProvider>
+          <RootLayoutContent />
         </SplashController>
       </AuthProvider>
     </ThemeProvider>

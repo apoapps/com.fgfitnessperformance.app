@@ -21,8 +21,9 @@ App movil **Client-Only Read-Only** para atletas que siguen programas de entrena
 ## Credenciales Supabase
 
 ```env
-EXPO_PUBLIC_SUPABASE_URL=https://nodhdwskxixnqhnlctiq.supabase.co
-EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_UHO2MLlXHjvKbSxAdnSDkw_3OvUHw_u
+EXPO_PUBLIC_SUPABASE_URL=https://jlpghwwbixunxglvlsbo.supabase.co
+EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_6h-KNR_k_fKdrrQssKDeXw_QXGr9Esj
+EXPO_PUBLIC_WEB_APP_URL=https://prod.fgfitnessperformance.com
 ```
 
 ## Usuario de Prueba
@@ -43,44 +44,34 @@ bun run android          # Iniciar en Android
 bun test                 # Ejecutar tests
 ```
 
-## Arquitectura Offline-First
+## Arquitectura Hibrida WebView
 
 ```
-Supabase (Nube)
+Next.js Web App (prod.fgfitnessperformance.com)
+     ^
+     | WebView (?embed=1 oculta tab bar/header)
      |
-     | Pull-Only Sync (NUNCA push)
-     v
-SyncEngine (Background)
+Expo Native Shell (React Native)
      |
-     | Transaccion Atomica
-     v
-SQLite Local (expo-sqlite)
+     | Auth: login nativo → inject tokens via postMessage
+     | Navigation: Tab bar + headers nativos
+     | Bridge: Web↔Native postMessage protocol v2
      |
-     | Hidratacion
-     v
-React Contexts (Estado Global)
-     |
-     | Render
-     v
-Componentes UI
+Supabase Auth (jlpghwwbixunxglvlsbo)
 ```
 
-**IMPORTANTE**: El cliente es 100% READ-ONLY. Nunca modifica datos en Supabase excepto para autenticacion.
+**IMPORTANTE**: El mobile app es un shell nativo que envuelve el web app via WebViews. Todo el contenido (workouts, nutrition, profile, dashboard) se renderiza en WebViews. Solo login, tab bar, y headers son nativos.
 
 ## Jerarquia de Providers
 
 ```tsx
-<AuthProvider>           // Nivel 1: Autenticacion primero
-  <SyncProvider>         // Nivel 2: Sync necesita auth
-    <ProfileProvider>    // Nivel 3: Perfil necesita sync
-      <WorkoutProvider>  // Nivel 4: Workouts necesitan sync
-        <NutritionProvider> // Nivel 5: Nutrition necesita sync
-          <App />
-        </NutritionProvider>
-      </WorkoutProvider>
-    </ProfileProvider>
-  </SyncProvider>
-</AuthProvider>
+<ThemeProvider>     // Theme nativo para header/tab bar
+  <AuthProvider>    // Autenticacion y sesion
+    <SplashController>
+      <RootLayoutContent />  // Stack navigator con tabs WebView
+    </SplashController>
+  </AuthProvider>
+</ThemeProvider>
 ```
 
 ## Contextos
@@ -88,10 +79,18 @@ Componentes UI
 | Context | Proposito | Fuente de Datos |
 |---------|-----------|-----------------|
 | AuthContext | Autenticacion y sesion | Supabase Auth directo |
-| ProfileContext | Datos de perfil y suscripcion | SQLite local |
-| WorkoutContext | Rutinas de entrenamiento | SQLite local |
-| NutritionContext | Plan nutricional y macros | SQLite local |
-| SyncContext | Coordinacion de sincronizacion | Supabase → SQLite |
+| ThemeContext | Theme nativo (light/dark) | AsyncStorage |
+
+Legacy contexts (Profile, Workout, Nutrition, Chat) moved to `_legacy/contexts/`.
+
+## Bridge Protocol v2 (Web ↔ Native)
+
+| Direction | Messages |
+|-----------|----------|
+| Web → Native | `WEBVIEW_READY`, `WEBVIEW_ROUTE`, `AUTH_NEEDED`, `AUTH_EXPIRED`, `HAPTIC`, `OPEN_EXTERNAL` |
+| Native → Web | `AUTH_SESSION`, `AUTH_LOGOUT`, `THEME_CHANGE`, `NAVIGATE_TO` |
+
+Key files: `utils/bridge.ts`, `hooks/useWebViewAuth.ts`, `components/web/EmbeddedWebScreen.tsx`
 
 ## Tablas Supabase Principales
 
@@ -172,21 +171,19 @@ structure: {
 
 ```
 /app
-  _layout.tsx              # Root Layout con Providers
-  index.tsx                # Redirect inicial
+  _layout.tsx              # Root Layout: ThemeProvider → AuthProvider → SplashController
+  index.tsx                # Redirect a (tabs) o (auth)
   (auth)/
     _layout.tsx            # Layout sin tabs
-    login.tsx
+    login.tsx              # Login nativo
     forgot-password.tsx
   (tabs)/
-    _layout.tsx            # TabBar flotante
-    dashboard/index.tsx    # "El Hub"
-    workout/
-      _layout.tsx          # Stack interno
-      index.tsx            # Lista de workouts
-      [id].tsx             # Detalle dinamico
-    nutrition/index.tsx    # Protocolo Diario
-    profile/index.tsx      # Configuracion
+    _layout.tsx            # TabBar nativo flotante
+    dashboard/index.tsx    # WebView → /app
+    workout/index.tsx      # WebView → /app/training
+    nutrition/index.tsx    # WebView → /app/nutrition
+    profile/index.tsx      # WebView → /app/profile
+  _legacy/                 # Archivado: screens/components/contexts nativos originales
 ```
 
 ## Metodologia TDD (Ralph Loop)
