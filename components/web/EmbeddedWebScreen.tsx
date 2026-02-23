@@ -12,6 +12,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebViewAuth } from '@/hooks/useWebViewAuth';
 import { parseBridgeMessage, buildInjectedMessage } from '@/utils/bridge';
+import { consumePendingDeepLink } from '@/utils/deep-link-store';
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -29,8 +30,10 @@ interface PageConfig {
 
 /** Mirror of web's PAGE_CONFIG — routes that show a native header. */
 const PAGE_CONFIG: Record<string, PageConfig> = {
+  // Tab root pages (non-hero)
   '/app/nutrition': { title: 'FG NUTRITION' },
   '/app/profile': { title: 'PERFIL' },
+  // Sub-routes
   '/app/billing': { title: 'FACTURACION', backHref: '/app/profile' },
   '/app/questionnaires': { title: 'CUESTIONARIOS', backHref: '/app' },
   '/app/questionnaires/training-diagnostic': { title: 'DIAGNOSTICO', backHref: '/app/questionnaires' },
@@ -38,6 +41,9 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
   '/app/questionnaires/monitoring': { title: 'MONITOREO', backHref: '/app/questionnaires' },
   '/app/questionnaires/monitoring/history': { title: 'HISTORIAL', backHref: '/app/questionnaires' },
 };
+
+/** Routes under /app/training/* that need a back button to /app/training */
+const TRAINING_SUB_ROUTE_PREFIX = '/app/training/exercise/';
 
 /** Routes with dark hero sections — no native header, dark SafeArea. */
 const HERO_ROUTES = new Set(['/app', '/app/training']);
@@ -211,7 +217,7 @@ function stripQuery(path: string): string {
 
 export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
   const { colors } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signOut } = useAuth();
   const router = useRouter();
   const webViewRef = useRef<WebView>(null);
   const { handleAuthMessage, injectSession, injectLogout } = useWebViewAuth(webViewRef);
@@ -237,9 +243,10 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
 
   const isHeroRoute = HERO_ROUTES.has(cleanPath);
   const pageConfig = PAGE_CONFIG[cleanPath];
+  const isTrainingSubRoute = cleanPath.startsWith(TRAINING_SUB_ROUTE_PREFIX);
   const showNativeHeader = !isHeroRoute;
-  const headerTitle = pageConfig?.title ?? title;
-  const headerBackHref = pageConfig?.backHref;
+  const headerTitle = pageConfig?.title ?? (isTrainingSubRoute ? 'EJERCICIO' : title);
+  const headerBackHref = pageConfig?.backHref ?? (isTrainingSubRoute ? '/app/training' : undefined);
 
   // Background color: dark for hero routes, light otherwise
   const chromeColor = isHeroRoute ? '#0f0f12' : '#f7f7f6';
@@ -284,16 +291,35 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
       if (!msg) return;
 
       switch (msg.type) {
-        case 'WEBVIEW_READY':
+        case 'WEBVIEW_READY': {
           if (!isFirstReady) {
             setIsFirstReady(true);
             track('webview_ready', { screen: title, path: msg.path });
           }
+
+          // Check for pending deep link and navigate WebView to it
+          const deepLink = consumePendingDeepLink();
+          if (deepLink && webViewRef.current) {
+            const webPath = deepLink.startsWith('/app') ? deepLink : `/app${deepLink}`;
+            track('webview_deep_link', { screen: title, target: webPath });
+            webViewRef.current.injectJavaScript(
+              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: webPath })
+            );
+          }
           break;
+        }
 
         case 'WEBVIEW_ROUTE': {
           const newCleanPath = stripQuery(msg.path);
           const initialCleanPath = stripQuery(path);
+
+          // Detect web logout — web navigated to /login
+          if (newCleanPath === '/login' || newCleanPath.startsWith('/login')) {
+            track('webview_logout_detected', { screen: title });
+            signOut();
+            router.replace('/(auth)/login');
+            break;
+          }
 
           // Detect cross-tab navigation (e.g. Dashboard WebView navigates to /app/nutrition)
           const targetTab = getNativeTabForPath(newCleanPath);
