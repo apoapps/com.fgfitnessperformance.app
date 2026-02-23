@@ -131,6 +131,9 @@ const EMBED_BOOTSTRAP_JS = `
     '  -webkit-touch-callout: none !important;',
     '  -webkit-user-drag: none;',
     '}',
+    'input, textarea, select {',
+    '  font-size: 16px !important;',
+    '}',
     '* { -webkit-tap-highlight-color: transparent; }'
   ].join('\\n');
 
