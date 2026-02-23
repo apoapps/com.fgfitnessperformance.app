@@ -86,6 +86,10 @@ const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
 
 const WEB_APP_URL = (process.env.EXPO_PUBLIC_WEB_APP_URL || 'https://prod.fgfitnessperformance.com').replace(/\/$/, '');
 
+// Module-level singleton guard — prevents all 4 WebViews from triggering
+// logout simultaneously when the web app navigates to /login.
+let _isLoggingOut = false;
+
 // ---------------------------------------------------------------------------
 // Bootstrap JS (injected before content loads)
 // ---------------------------------------------------------------------------
@@ -338,11 +342,17 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           const newCleanPath = stripQuery(msg.path);
           const initialCleanPath = stripQuery(path);
 
-          // Detect web logout — web navigated to /login
+          // Detect web logout — web navigated to /login.
+          // Guard: only the first WebView to detect this triggers the native logout.
           if (newCleanPath === '/login' || newCleanPath.startsWith('/login')) {
-            track('webview_logout_detected', { screen: title });
-            signOut();
-            router.replace('/(auth)/login');
+            if (!_isLoggingOut) {
+              _isLoggingOut = true;
+              track('webview_logout_detected', { screen: title });
+              signOut();
+              router.replace('/(auth)/login');
+              // Reset after navigation settles
+              setTimeout(() => { _isLoggingOut = false; }, 2000);
+            }
             break;
           }
 
@@ -391,10 +401,12 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
         case 'AUTH_ERROR':
           // useWebViewAuth hook tries to re-inject session.
           // If native has no valid session, treat as mismatch → force logout.
-          if (!isAuthenticated) {
+          if (!isAuthenticated && !_isLoggingOut) {
+            _isLoggingOut = true;
             track('webview_auth_mismatch', { screen: title, reason: msg.type });
             signOut();
             router.replace('/(auth)/login');
+            setTimeout(() => { _isLoggingOut = false; }, 2000);
           }
           break;
 

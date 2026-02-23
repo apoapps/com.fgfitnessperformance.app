@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
@@ -43,19 +43,18 @@ function RootLayoutContent() {
   );
 }
 
-// Componente interno que monitorea cuando el app está listo
+// Splash shown once on cold start, never again
 function SplashController({ children }: { children: React.ReactNode }) {
   const [showSplash, setShowSplash] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const readyFired = useRef(false);
   const { isLoading } = useAuth();
 
-  // Marcar como listo cuando Auth termine de cargar
   useEffect(() => {
-    if (!isLoading) {
-      // Pequeño delay adicional para asegurar que todo esté hidratado
-      const timer = setTimeout(() => {
-        setIsReady(true);
-      }, 300);
+    if (!isLoading && !readyFired.current) {
+      readyFired.current = true;
+      // Small delay so the first frame is fully rendered
+      const timer = setTimeout(() => setIsReady(true), 200);
       return () => clearTimeout(timer);
     }
   }, [isLoading]);
