@@ -13,6 +13,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useWebViewAuth } from '@/hooks/useWebViewAuth';
 import { parseBridgeMessage, buildInjectedMessage } from '@/utils/bridge';
 import { consumePendingDeepLink } from '@/utils/deep-link-store';
+import { requestLogout, isLogoutInProgress, registerWebView, unregisterWebView } from '@/utils/auth-bridge';
+import { onTabReset } from '@/utils/tab-events';
+import { setAppContentReady } from '@/utils/app-ready';
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -21,6 +24,8 @@ import { consumePendingDeepLink } from '@/utils/deep-link-store';
 interface EmbeddedWebScreenProps {
   path: string;
   title: string;
+  /** Tab name for tab-reset events (e.g. 'dashboard', 'workout'). */
+  tabName?: string;
 }
 
 interface PageConfig {
@@ -85,10 +90,6 @@ const RETRY_DELAY_MS = 2000;
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
 
 const WEB_APP_URL = (process.env.EXPO_PUBLIC_WEB_APP_URL || 'https://prod.fgfitnessperformance.com').replace(/\/$/, '');
-
-// Module-level singleton guard — prevents all 4 WebViews from triggering
-// logout simultaneously when the web app navigates to /login.
-let _isLoggingOut = false;
 
 // ---------------------------------------------------------------------------
 // Bootstrap JS (injected before content loads)
@@ -166,6 +167,16 @@ const EMBED_BOOTSTRAP_JS = `
       document.head.appendChild(style);
     }, { once: true });
   }
+
+  // Scroll focused inputs into view when keyboard appears (Issue 8)
+  document.addEventListener('focusin', (e) => {
+    const target = e.target;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  });
 
   // Listen for messages from native (AUTH_SESSION, AUTH_LOGOUT, NAVIGATE_TO)
   window.addEventListener('message', (event) => {
@@ -247,7 +258,7 @@ function stripQuery(path: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
+export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenProps) {
   const { colors } = useTheme();
   const { isAuthenticated, signOut } = useAuth();
   const router = useRouter();
@@ -261,6 +272,27 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
   // Auto-retry refs
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Register/unregister WebView ref with auth-bridge (Issue 3)
+  useEffect(() => {
+    const id = tabName ?? title;
+    registerWebView(id, webViewRef);
+    return () => { unregisterWebView(id); };
+  }, [tabName, title]);
+
+  // Subscribe to tab reset events (Issue 5)
+  useEffect(() => {
+    if (!tabName) return;
+    return onTabReset(tabName, (rootPath) => {
+      if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(
+          buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: rootPath })
+        );
+        // Also scroll to top
+        webViewRef.current.injectJavaScript('window.scrollTo(0, 0); true;');
+      }
+    });
+  }, [tabName]);
 
   // Cleanup retry timer on unmount
   useEffect(() => {
@@ -326,6 +358,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
         case 'WEBVIEW_READY': {
           if (!isFirstReady) {
             setIsFirstReady(true);
+            setAppContentReady(); // Issue 7: signal splash can dismiss
             track('webview_ready', { screen: title, path: msg.path });
           }
 
@@ -345,17 +378,20 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           const newCleanPath = stripQuery(msg.path);
           const initialCleanPath = stripQuery(path);
 
+          // Logo click in embedded mode → redirect to /app (dashboard) instead of landing
+          if (newCleanPath === '/' || newCleanPath === '') {
+            webViewRef.current?.injectJavaScript(
+              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: '/app' })
+            );
+            // Also switch to dashboard tab
+            router.replace('/(tabs)/dashboard' as any);
+            break;
+          }
+
           // Detect web logout — web navigated to /login.
-          // Guard: only the first WebView to detect this triggers the native logout.
+          // auth-bridge ensures only the first WebView triggers the actual logout.
           if (newCleanPath === '/login' || newCleanPath.startsWith('/login')) {
-            if (!_isLoggingOut) {
-              _isLoggingOut = true;
-              track('webview_logout_detected', { screen: title });
-              signOut();
-              router.replace('/(auth)/login');
-              // Reset after navigation settles
-              setTimeout(() => { _isLoggingOut = false; }, 2000);
-            }
+            requestLogout(title);
             break;
           }
 
@@ -404,12 +440,9 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
         case 'AUTH_ERROR':
           // useWebViewAuth hook tries to re-inject session.
           // If native has no valid session, treat as mismatch → force logout.
-          if (!isAuthenticated && !_isLoggingOut) {
-            _isLoggingOut = true;
+          if (!isAuthenticated && !isLogoutInProgress()) {
             track('webview_auth_mismatch', { screen: title, reason: msg.type });
-            signOut();
-            router.replace('/(auth)/login');
-            setTimeout(() => { _isLoggingOut = false; }, 2000);
+            requestLogout(title);
           }
           break;
 
@@ -421,7 +454,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           break;
       }
     },
-    [handleAuthMessage, isFirstReady, isAuthenticated, signOut, title, path, router],
+    [handleAuthMessage, isFirstReady, isAuthenticated, title, path, router],
   );
 
   // ---------- Navigation filter (allow FG domain + video embeds) ----------
@@ -561,7 +594,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           allowsLinkPreview={false}
           scrollEnabled
           scalesPageToFit={false}
-          textInteractionEnabled={false}
+          keyboardDisplayRequiresUserAction={false}
           style={{
             flex: 1,
             opacity: isFirstReady ? 1 : 0,
@@ -569,7 +602,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           }}
         />
 
-        {/* Loading overlay */}
+        {/* Loading overlay — uses background color matching splash to avoid flickering */}
         {!isFirstReady && !isError && (
           <View
             style={{
@@ -580,15 +613,9 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
               bottom: 0,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: chromeColor,
-              gap: 10,
+              backgroundColor: colors.background,
             }}
-          >
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text variant="caption" style={{ color: isHeroRoute ? '#a1a1aa' : colors.textMuted }}>
-              Cargando contenido...
-            </Text>
-          </View>
+          />
         )}
 
         {/* Error overlay — only after MAX_RETRIES auto-retries exhausted */}

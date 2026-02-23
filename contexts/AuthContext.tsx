@@ -28,9 +28,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = !!session && !!user;
 
   useEffect(() => {
+    // Safety timeout: if getSession hangs (network/storage issues),
+    // guarantee isLoading becomes false so the login button stays usable.
+    const safetyTimer = setTimeout(() => {
+      if (isLoading) {
+        console.warn('[AuthContext] Safety timeout — forcing isLoading=false');
+        setIsLoading(false);
+      }
+    }, 5000);
+
     // Get initial session
     supabase.auth.getSession()
       .then(({ data: { session: s }, error }) => {
+        clearTimeout(safetyTimer);
         if (error) {
           console.warn('[AuthContext] getSession error:', error.message);
           // Invalid/expired session stored — clear it so user can re-login
@@ -41,6 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoading(false);
       })
       .catch((err) => {
+        clearTimeout(safetyTimer);
         console.warn('[AuthContext] getSession failed:', err);
         // Clear any corrupt session data
         supabase.auth.signOut().catch(() => {});
@@ -66,6 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     return () => {
+      clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
   }, []);

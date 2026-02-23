@@ -17,7 +17,10 @@ export type WebToNativeMessage =
   | { v: 2; type: 'NAVIGATE'; path: string }
   | { v: 2; type: 'OPEN_SHEET'; sheet: string; data?: unknown }
   | { v: 2; type: 'HAPTIC'; style: 'light' | 'medium' | 'heavy' | 'success' | 'error' }
-  | { v: 2; type: 'OPEN_EXTERNAL'; url: string };
+  | { v: 2; type: 'OPEN_EXTERNAL'; url: string }
+  | { v: 2; type: 'CAPTCHA_TOKEN'; token: string }
+  | { v: 2; type: 'CAPTCHA_EXPIRED' }
+  | { v: 2; type: 'CAPTCHA_ERROR'; message: string };
 
 // Messages from Native → Web (via webViewRef.injectJavaScript)
 export type NativeToWebMessage =

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -14,6 +14,8 @@ import { Text, Button, Card, Input } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/utils/supabase';
+import { reloadAllWebViews } from '@/utils/auth-bridge';
+import { CaptchaWebView } from '@/components/web/CaptchaWebView';
 
 // Logos - horizontal with text (already includes "FG Fitness Performance" text)
 const LogoHBlanco = require('../../assets/logo-h-blanco.svg');
@@ -43,14 +45,30 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaNeeded, setCaptchaNeeded] = useState(false);
+  const captchaRef = useRef<{ reset: () => void }>(null);
   const currentYear = new Date().getFullYear();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated + reload all WebViews on re-auth (Issue 3)
   useEffect(() => {
     if (isAuthenticated) {
+      reloadAllWebViews();
       router.replace('/(tabs)/dashboard');
     }
   }, [isAuthenticated]);
+
+  const handleCaptchaToken = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
+
+  const handleCaptchaExpired = useCallback(() => {
+    setCaptchaToken(null);
+  }, []);
+
+  const handleCaptchaError = useCallback(() => {
+    setCaptchaToken(null);
+  }, []);
 
   /**
    * Primary login: try direct Supabase auth (no browser needed).
@@ -64,11 +82,12 @@ export default function LoginScreen() {
     setLocalLoading(true);
 
     try {
-      // Try direct signInWithPassword — works if captcha is not enforced server-side
-      console.log('[login] Attempting signInWithPassword...');
+      // Try direct signInWithPassword — pass captchaToken if available
+      console.log('[login] Attempting signInWithPassword...', { hasCaptcha: !!captchaToken });
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
+        options: captchaToken ? { captchaToken } : undefined,
       });
 
       console.log('[login] signInWithPassword result:', {
@@ -78,23 +97,30 @@ export default function LoginScreen() {
       });
 
       if (!authError && data.session) {
-        // Success — AuthContext onAuthStateChange picks up session
-        // useEffect above redirects to /(tabs)/dashboard
         console.log('[login] Direct login success!');
         return;
       }
 
       if (authError) {
-        // Captcha enforced server-side → fall back to browser with Turnstile
+        // Captcha enforced server-side
         if (authError.message?.toLowerCase().includes('captcha')) {
-          console.log('[login] Captcha required, falling back to browser login...');
-          const redirectUrl = Linking.createURL('auth-complete');
-          console.log('[login] Browser redirect URL:', redirectUrl);
-          await handleBrowserLogin();
+          if (!captchaNeeded) {
+            // First captcha failure: show embedded captcha widget
+            console.log('[login] Captcha required, showing embedded captcha...');
+            setCaptchaNeeded(true);
+            setCaptchaToken(null);
+          } else {
+            // Captcha widget already shown but failed → fall back to browser
+            console.log('[login] Captcha failed again, falling back to browser login...');
+            await handleBrowserLogin();
+          }
           return;
         }
 
-        // Map common errors to Spanish
+        // Reset captcha on error so user gets fresh token
+        captchaRef.current?.reset();
+        setCaptchaToken(null);
+
         const msg =
           authError.message === 'Invalid login credentials'
             ? 'Email o contraseña incorrectos.'
@@ -183,7 +209,9 @@ export default function LoginScreen() {
     }
   };
 
-  const isSubmitting = localLoading || isLoading;
+  const isSubmitting = localLoading;
+  // When captcha is required, disable button until token is ready
+  const captchaBlocking = captchaNeeded && !captchaToken;
   const displayError = localError || error;
 
   return (
@@ -268,12 +296,22 @@ export default function LoginScreen() {
                 editable={!isSubmitting}
               />
 
+              {/* Captcha widget (shown only when server requires it) */}
+              {captchaNeeded && (
+                <CaptchaWebView
+                  ref={captchaRef}
+                  onToken={handleCaptchaToken}
+                  onExpired={handleCaptchaExpired}
+                  onError={handleCaptchaError}
+                />
+              )}
+
               <Button
                 title="INICIAR SESION"
                 variant="primary"
                 onPress={handleLogin}
                 loading={isSubmitting}
-                disabled={!email || !password || isSubmitting}
+                disabled={!email || !password || isSubmitting || captchaBlocking}
                 testID="login-button"
               />
 

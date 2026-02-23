@@ -1,15 +1,29 @@
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, usePathname } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onLogoutRequested } from '@/utils/auth-bridge';
+import { emitTabReset } from '@/utils/tab-events';
+import { resetAppReady } from '@/utils/app-ready';
 
 const LAST_TAB_KEY = '@fg_last_visited_tab';
 const VALID_TABS = ['dashboard', 'workout', 'nutrition', 'profile'] as const;
 
+/** Map tab names to their WebView root paths. */
+const TAB_ROOT_PATHS: Record<string, string> = {
+  dashboard: '/app',
+  workout: '/app/training',
+  nutrition: '/app/nutrition',
+  profile: '/app/profile',
+};
+
 export default function TabLayout() {
   const { colors } = useTheme();
+  const { signOut } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
 
   // Save last visited tab when pathname changes
@@ -23,6 +37,15 @@ export default function TabLayout() {
       }
     }
   }, [pathname]);
+
+  // Listen for centralized logout requests from any WebView (Issue 3)
+  useEffect(() => {
+    return onLogoutRequested(() => {
+      resetAppReady();
+      signOut();
+      router.replace('/(auth)/login');
+    });
+  }, [signOut, router]);
 
   return (
     <Tabs
@@ -59,6 +82,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{ tabPress: () => emitTabReset('dashboard', TAB_ROOT_PATHS.dashboard) }}
       />
       <Tabs.Screen
         name="workout"
@@ -72,6 +96,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{ tabPress: () => emitTabReset('workout', TAB_ROOT_PATHS.workout) }}
       />
       <Tabs.Screen
         name="nutrition"
@@ -85,6 +110,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{ tabPress: () => emitTabReset('nutrition', TAB_ROOT_PATHS.nutrition) }}
       />
       <Tabs.Screen
         name="profile"
@@ -98,6 +124,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{ tabPress: () => emitTabReset('profile', TAB_ROOT_PATHS.profile) }}
       />
     </Tabs>
   );
