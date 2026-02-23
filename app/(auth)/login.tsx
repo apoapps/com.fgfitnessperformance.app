@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -16,6 +16,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/utils/supabase';
 import { reloadAllWebViews } from '@/utils/auth-bridge';
+import { CaptchaWebView, type CaptchaWebViewHandle } from '@/components/web/CaptchaWebView';
 
 // Logos - horizontal with text (already includes "FG Fitness Performance" text)
 const LogoHBlanco = require('../../assets/logo-h-blanco.svg');
@@ -28,7 +29,6 @@ function generateUUID(): string {
   if (typeof globalThis.crypto?.randomUUID === 'function') {
     return globalThis.crypto.randomUUID();
   }
-  // Manual UUID v4 fallback for older engines
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
@@ -47,6 +47,29 @@ export default function LoginScreen() {
   const [localError, setLocalError] = useState<string | null>(null);
   const currentYear = new Date().getFullYear();
 
+  // Captcha state
+  const captchaRef = useRef<CaptchaWebViewHandle>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReady, setCaptchaReady] = useState(false);
+  const [captchaFailed, setCaptchaFailed] = useState(false);
+
+  const handleCaptchaToken = useCallback((token: string) => {
+    setCaptchaToken(token);
+    setCaptchaReady(true);
+    setCaptchaFailed(false);
+  }, []);
+
+  const handleCaptchaExpired = useCallback(() => {
+    setCaptchaToken(null);
+    setCaptchaReady(false);
+  }, []);
+
+  const handleCaptchaError = useCallback(() => {
+    setCaptchaFailed(true);
+    setCaptchaReady(false);
+    setCaptchaToken(null);
+  }, []);
+
   // Redirect if already authenticated + reload all WebViews on re-auth
   useEffect(() => {
     if (isAuthenticated) {
@@ -56,9 +79,8 @@ export default function LoginScreen() {
   }, [isAuthenticated]);
 
   /**
-   * Primary login: try direct Supabase auth first.
-   * If captcha is enforced server-side, immediately fall back to
-   * browser-based login (same web login page with Turnstile built-in).
+   * Primary login: signInWithPassword with captcha token.
+   * If captcha WebView failed to load, fall back to browser login.
    */
   const handleLogin = async () => {
     if (!email || !password) return;
@@ -68,29 +90,41 @@ export default function LoginScreen() {
     setLocalLoading(true);
 
     try {
-      // Try direct signInWithPassword — works when captcha is not enforced
-      console.log('[login] Attempting signInWithPassword...');
+      // If captcha WebView failed entirely, go to browser login
+      if (captchaFailed) {
+        console.log('[login] Captcha WebView failed, opening browser login...');
+        await handleBrowserLogin();
+        return;
+      }
+
+      console.log('[login] Attempting signInWithPassword with captchaToken...');
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
+        options: captchaToken ? { captchaToken } : undefined,
       });
 
+      // Reset captcha after each attempt (token is single-use)
+      setCaptchaToken(null);
+      setCaptchaReady(false);
+      captchaRef.current?.reset();
+
       if (!authError && data.session) {
-        console.log('[login] Direct login success!');
+        console.log('[login] Login success!');
         return;
       }
 
       if (authError) {
-        // Captcha enforced → go straight to browser login (same web page with Turnstile)
+        // If captcha was required but we didn't have a token, retry after token arrives
         if (authError.message?.toLowerCase().includes('captcha')) {
-          console.log('[login] Captcha required, opening browser login...');
-          await handleBrowserLogin();
+          console.log('[login] Captcha required, waiting for token...');
+          setLocalError('Verificando... intenta de nuevo en unos segundos.');
           return;
         }
 
         const msg =
           authError.message === 'Invalid login credentials'
-            ? 'Email o contraseña incorrectos.'
+            ? 'Email o contrasena incorrectos.'
             : authError.message;
         setLocalError(msg);
       }
@@ -103,18 +137,15 @@ export default function LoginScreen() {
   };
 
   /**
-   * Browser-based login (same web login page with Turnstile).
-   * Uses ASWebAuthenticationSession (iOS) / Custom Chrome Tab (Android).
+   * Browser-based login fallback (same web login page with Turnstile).
+   * Only used if the inline captcha WebView fails to load.
    */
   const handleBrowserLogin = async () => {
     const state = generateUUID();
-
-    // Pre-fill email in web login form
     const loginUrl = `${WEB_APP_URL}/login?mobile=1&state=${encodeURIComponent(state)}&email=${encodeURIComponent(email.trim())}`;
     const redirectUrl = Linking.createURL('auth-complete');
 
     console.log('[login:browser] Opening browser login');
-
     const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
     console.log('[login:browser] Browser result:', JSON.stringify(result));
 
@@ -123,7 +154,6 @@ export default function LoginScreen() {
       const code = url.searchParams.get('code');
       const returnedState = url.searchParams.get('state');
 
-      // Verify state matches (CSRF protection)
       if (returnedState !== state) {
         setLocalError('Sesion invalida. Intenta de nuevo.');
         return;
@@ -134,7 +164,6 @@ export default function LoginScreen() {
         return;
       }
 
-      // Exchange one-time code for session tokens
       const response = await fetch(`${WEB_APP_URL}/api/auth/mobile/exchange`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,8 +177,6 @@ export default function LoginScreen() {
       }
 
       const { access_token, refresh_token } = await response.json();
-
-      // Set session in Supabase client (stored in SecureStore)
       const { error: sessionError } = await supabase.auth.setSession({
         access_token,
         refresh_token,
@@ -159,11 +186,8 @@ export default function LoginScreen() {
         setLocalError('Error al establecer sesion. Intenta de nuevo.');
         return;
       }
-
-      // AuthContext's onAuthStateChange will pick up the session
-      // and redirect to dashboard
     } else if (result.type === 'cancel') {
-      // User cancelled — do nothing
+      // User cancelled
     } else {
       setLocalError('No se pudo completar el inicio de sesion.');
     }
@@ -187,7 +211,6 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header with Logo */}
-          {/* logo-h aspect ratio is 660:131 (≈5:1) */}
           <View style={{ alignItems: 'center', marginBottom: 48 }}>
             <Image
               source={isDark ? LogoHBlanco : LogoHNegro}
@@ -252,6 +275,14 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoComplete="password"
                 editable={!isSubmitting}
+              />
+
+              {/* Turnstile captcha widget */}
+              <CaptchaWebView
+                ref={captchaRef}
+                onToken={handleCaptchaToken}
+                onExpired={handleCaptchaExpired}
+                onError={handleCaptchaError}
               />
 
               <Button
