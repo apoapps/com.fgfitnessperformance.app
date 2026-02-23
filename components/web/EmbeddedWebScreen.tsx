@@ -111,8 +111,8 @@ const EMBED_BOOTSTRAP_JS = `
   const style = document.createElement('style');
   style.textContent = [
     'html, body {',
-    '  -webkit-text-size-adjust: 100%;',
-    '  touch-action: manipulation;',
+    '  -webkit-text-size-adjust: 100% !important;',
+    '  touch-action: pan-x pan-y !important;',
     '  overscroll-behavior: none;',
     '  -webkit-user-select: none;',
     '  user-select: none;',
@@ -124,11 +124,31 @@ const EMBED_BOOTSTRAP_JS = `
     '  -webkit-touch-callout: default;',
     '}',
     'a, img, button {',
-    '  -webkit-touch-callout: none;',
+    '  -webkit-touch-callout: none !important;',
     '  -webkit-user-drag: none;',
     '}',
     '* { -webkit-tap-highlight-color: transparent; }'
   ].join('\\n');
+
+  // Block pinch-to-zoom gestures
+  document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+  document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+
+  // Block multi-touch zoom (2+ fingers)
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  // Re-enforce viewport after Next.js hydration overrides it
+  const enforceViewport = () => {
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+  };
+  const vpObserver = new MutationObserver(enforceViewport);
+  if (document.head) {
+    vpObserver.observe(document.head, { childList: true, subtree: true, attributes: true });
+  }
 
   if (document.head) {
     ensureViewport();
