@@ -6,6 +6,11 @@ import 'react-native-url-polyfill/auto';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
 
+if (__DEV__) {
+  console.log('[supabase] URL:', supabaseUrl);
+  console.log('[supabase] Key prefix:', supabaseKey?.substring(0, 20) + '...');
+}
+
 // Web Lock API for browser environments to prevent concurrent auth operations
 const webLock = Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.locks
   ? async <T>(name: string, acquireTimeout: number, fn: () => Promise<T>): Promise<T> => {

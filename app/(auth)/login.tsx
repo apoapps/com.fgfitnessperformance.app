@@ -65,20 +65,31 @@ export default function LoginScreen() {
 
     try {
       // Try direct signInWithPassword — works if captcha is not enforced server-side
+      console.log('[login] Attempting signInWithPassword...');
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
+      console.log('[login] signInWithPassword result:', {
+        hasSession: !!data?.session,
+        error: authError?.message,
+        errorStatus: authError?.status,
+      });
+
       if (!authError && data.session) {
         // Success — AuthContext onAuthStateChange picks up session
         // useEffect above redirects to /(tabs)/dashboard
+        console.log('[login] Direct login success!');
         return;
       }
 
       if (authError) {
         // Captcha enforced server-side → fall back to browser with Turnstile
         if (authError.message?.toLowerCase().includes('captcha')) {
+          console.log('[login] Captcha required, falling back to browser login...');
+          const redirectUrl = Linking.createURL('auth-complete');
+          console.log('[login] Browser redirect URL:', redirectUrl);
           await handleBrowserLogin();
           return;
         }
@@ -88,9 +99,11 @@ export default function LoginScreen() {
           authError.message === 'Invalid login credentials'
             ? 'Email o contraseña incorrectos.'
             : authError.message;
+        console.log('[login] Auth error:', authError.message);
         setLocalError(msg);
       }
     } catch (err) {
+      console.log('[login] Exception:', err);
       setLocalError('Error de conexion. Intenta de nuevo.');
     } finally {
       setLocalLoading(false);
@@ -112,7 +125,12 @@ export default function LoginScreen() {
     // (HTTPS redirect requires Universal Links which may not be configured)
     const redirectUrl = Linking.createURL('auth-complete');
 
+    console.log('[login:browser] Opening browser login');
+    console.log('[login:browser] loginUrl:', loginUrl);
+    console.log('[login:browser] redirectUrl:', redirectUrl);
+
     const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
+    console.log('[login:browser] Browser result:', JSON.stringify(result));
 
     if (result.type === 'success' && result.url) {
       const url = new URL(result.url);

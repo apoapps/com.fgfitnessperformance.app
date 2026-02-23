@@ -75,6 +75,9 @@ function getNativeTabForPath(webPath: string): string | null {
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
 
+/** Tab bar height — must match tabBarStyle.height in (tabs)/_layout.tsx */
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 68;
+
 const WEB_APP_URL = (process.env.EXPO_PUBLIC_WEB_APP_URL || 'https://prod.fgfitnessperformance.com').replace(/\/$/, '');
 
 // ---------------------------------------------------------------------------
@@ -405,7 +408,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
   // ---------- Render ----------
 
   return (
-    <View style={{ flex: 1, backgroundColor: chromeColor }}>
+    <View style={{ flex: 1, backgroundColor: chromeColor, paddingBottom: TAB_BAR_HEIGHT }}>
       {/* Status bar: light text on dark hero, dark text on light header */}
       {isHeroRoute && <StatusBar style="light" />}
 

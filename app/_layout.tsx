@@ -31,6 +31,12 @@ function RootLayoutContent() {
             animation: 'fade',
           }}
         />
+        <Stack.Screen
+          name="+not-found"
+          options={{
+            animation: 'fade',
+          }}
+        />
       </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </>
