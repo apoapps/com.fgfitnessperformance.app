@@ -122,7 +122,12 @@ const EMBED_BOOTSTRAP_JS = `
     '  -webkit-user-select: text;',
     '  user-select: text;',
     '  -webkit-touch-callout: default;',
-    '}'
+    '}',
+    'a, img, button {',
+    '  -webkit-touch-callout: none;',
+    '  -webkit-user-drag: none;',
+    '}',
+    '* { -webkit-tap-highlight-color: transparent; }'
   ].join('\\n');
 
   if (document.head) {
@@ -364,10 +369,11 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
         case 'AUTH_NEEDED':
         case 'AUTH_EXPIRED':
         case 'AUTH_ERROR':
-          // useWebViewAuth hook already handles this by re-injecting the session.
-          // Only redirect to login if there's genuinely no native session.
+          // useWebViewAuth hook tries to re-inject session.
+          // If native has no valid session, treat as mismatch → force logout.
           if (!isAuthenticated) {
-            track('webview_auth_redirect', { screen: title, reason: msg.type });
+            track('webview_auth_mismatch', { screen: title, reason: msg.type });
+            signOut();
             router.replace('/(auth)/login');
           }
           break;
@@ -380,7 +386,7 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           break;
       }
     },
-    [handleAuthMessage, isFirstReady, isAuthenticated, title, path, router],
+    [handleAuthMessage, isFirstReady, isAuthenticated, signOut, title, path, router],
   );
 
   // ---------- Navigation filter (allow FG domain + video embeds) ----------
@@ -517,6 +523,10 @@ export function EmbeddedWebScreen({ path, title }: EmbeddedWebScreenProps) {
           mediaPlaybackRequiresUserAction={false}
           allowsFullscreenVideo
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+          allowsLinkPreview={false}
+          scrollEnabled
+          scalesPageToFit={false}
+          textInteractionEnabled={false}
           style={{
             flex: 1,
             opacity: isFirstReady ? 1 : 0,

@@ -30,24 +30,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession()
-      .then(({ data: { session }, error }) => {
+      .then(({ data: { session: s }, error }) => {
         if (error) {
           console.warn('[AuthContext] getSession error:', error.message);
+          // Invalid/expired session stored — clear it so user can re-login
+          supabase.auth.signOut().catch(() => {});
         }
-        setSession(session);
-        setUser(session?.user ?? null);
+        setSession(s);
+        setUser(s?.user ?? null);
         setIsLoading(false);
       })
       .catch((err) => {
         console.warn('[AuthContext] getSession failed:', err);
+        // Clear any corrupt session data
+        supabase.auth.signOut().catch(() => {});
+        setSession(null);
+        setUser(null);
         setIsLoading(false);
       });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (event, s) => {
+        if (event === 'TOKEN_REFRESHED' && !s) {
+          // Token refresh failed — session is dead
+          console.warn('[AuthContext] Token refresh returned null session');
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(s);
+          setUser(s?.user ?? null);
+        }
         setIsLoading(false);
       }
     );
@@ -86,25 +99,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signOut = async () => {
-    setIsLoading(true);
     setError(null);
 
+    // Always clear local state — even if the API call fails
+    setSession(null);
+    setUser(null);
+
     try {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setSession(null);
-      setUser(null);
-      setIsLoading(false);
-    } catch (err) {
-      setError('Error al cerrar sesión. Intente nuevamente.');
-      setIsLoading(false);
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore — local state is already cleared
     }
+
+    setIsLoading(false);
   };
 
   const clearError = () => {
