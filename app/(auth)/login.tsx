@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -262,13 +263,16 @@ export default function LoginScreen() {
                 testID="login-button"
               />
 
-              <Text
-                variant="caption"
-                color="textMuted"
-                style={{ textAlign: 'center' }}
+              <Pressable
+                onPress={() => WebBrowser.openBrowserAsync(`${WEB_APP_URL}/forgot-password`)}
               >
-                ¿Olvidaste tu contrasena? Contacta a tu entrenador.
-              </Text>
+                <Text
+                  variant="caption"
+                  style={{ textAlign: 'center', color: colors.primary, textDecorationLine: 'underline' }}
+                >
+                  ¿Olvidaste tu contrasena?
+                </Text>
+              </Pressable>
             </View>
           </Card>
 
