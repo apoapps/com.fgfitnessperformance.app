@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -15,7 +15,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/utils/supabase';
 import { reloadAllWebViews } from '@/utils/auth-bridge';
-import { CaptchaWebView } from '@/components/web/CaptchaWebView';
 
 // Logos - horizontal with text (already includes "FG Fitness Performance" text)
 const LogoHBlanco = require('../../assets/logo-h-blanco.svg');
@@ -45,12 +44,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [captchaNeeded, setCaptchaNeeded] = useState(false);
-  const captchaRef = useRef<{ reset: () => void }>(null);
   const currentYear = new Date().getFullYear();
 
-  // Redirect if already authenticated + reload all WebViews on re-auth (Issue 3)
+  // Redirect if already authenticated + reload all WebViews on re-auth
   useEffect(() => {
     if (isAuthenticated) {
       reloadAllWebViews();
@@ -58,21 +54,10 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated]);
 
-  const handleCaptchaToken = useCallback((token: string) => {
-    setCaptchaToken(token);
-  }, []);
-
-  const handleCaptchaExpired = useCallback(() => {
-    setCaptchaToken(null);
-  }, []);
-
-  const handleCaptchaError = useCallback(() => {
-    setCaptchaToken(null);
-  }, []);
-
   /**
-   * Primary login: try direct Supabase auth (no browser needed).
-   * Falls back to browser-based login only if captcha is enforced server-side.
+   * Primary login: try direct Supabase auth first.
+   * If captcha is enforced server-side, immediately fall back to
+   * browser-based login (same web login page with Turnstile built-in).
    */
   const handleLogin = async () => {
     if (!email || !password) return;
@@ -82,18 +67,11 @@ export default function LoginScreen() {
     setLocalLoading(true);
 
     try {
-      // Try direct signInWithPassword — pass captchaToken if available
-      console.log('[login] Attempting signInWithPassword...', { hasCaptcha: !!captchaToken });
+      // Try direct signInWithPassword — works when captcha is not enforced
+      console.log('[login] Attempting signInWithPassword...');
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
-        options: captchaToken ? { captchaToken } : undefined,
-      });
-
-      console.log('[login] signInWithPassword result:', {
-        hasSession: !!data?.session,
-        error: authError?.message,
-        errorStatus: authError?.status,
       });
 
       if (!authError && data.session) {
@@ -102,30 +80,17 @@ export default function LoginScreen() {
       }
 
       if (authError) {
-        // Captcha enforced server-side
+        // Captcha enforced → go straight to browser login (same web page with Turnstile)
         if (authError.message?.toLowerCase().includes('captcha')) {
-          if (!captchaNeeded) {
-            // First captcha failure: show embedded captcha widget
-            console.log('[login] Captcha required, showing embedded captcha...');
-            setCaptchaNeeded(true);
-            setCaptchaToken(null);
-          } else {
-            // Captcha widget already shown but failed → fall back to browser
-            console.log('[login] Captcha failed again, falling back to browser login...');
-            await handleBrowserLogin();
-          }
+          console.log('[login] Captcha required, opening browser login...');
+          await handleBrowserLogin();
           return;
         }
-
-        // Reset captcha on error so user gets fresh token
-        captchaRef.current?.reset();
-        setCaptchaToken(null);
 
         const msg =
           authError.message === 'Invalid login credentials'
             ? 'Email o contraseña incorrectos.'
             : authError.message;
-        console.log('[login] Auth error:', authError.message);
         setLocalError(msg);
       }
     } catch (err) {
@@ -137,23 +102,17 @@ export default function LoginScreen() {
   };
 
   /**
-   * Browser-based login fallback (when server-side captcha is enforced).
+   * Browser-based login (same web login page with Turnstile).
    * Uses ASWebAuthenticationSession (iOS) / Custom Chrome Tab (Android).
-   * Turnstile works in real browsers, unlike WebViews.
    */
   const handleBrowserLogin = async () => {
     const state = generateUUID();
 
     // Pre-fill email in web login form
     const loginUrl = `${WEB_APP_URL}/login?mobile=1&state=${encodeURIComponent(state)}&email=${encodeURIComponent(email.trim())}`;
-
-    // Use custom scheme — captured directly by ASWebAuthenticationSession
-    // (HTTPS redirect requires Universal Links which may not be configured)
     const redirectUrl = Linking.createURL('auth-complete');
 
     console.log('[login:browser] Opening browser login');
-    console.log('[login:browser] loginUrl:', loginUrl);
-    console.log('[login:browser] redirectUrl:', redirectUrl);
 
     const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
     console.log('[login:browser] Browser result:', JSON.stringify(result));
@@ -210,8 +169,6 @@ export default function LoginScreen() {
   };
 
   const isSubmitting = localLoading;
-  // When captcha is required, disable button until token is ready
-  const captchaBlocking = captchaNeeded && !captchaToken;
   const displayError = localError || error;
 
   return (
@@ -296,22 +253,12 @@ export default function LoginScreen() {
                 editable={!isSubmitting}
               />
 
-              {/* Captcha widget (shown only when server requires it) */}
-              {captchaNeeded && (
-                <CaptchaWebView
-                  ref={captchaRef}
-                  onToken={handleCaptchaToken}
-                  onExpired={handleCaptchaExpired}
-                  onError={handleCaptchaError}
-                />
-              )}
-
               <Button
                 title="INICIAR SESION"
                 variant="primary"
                 onPress={handleLogin}
                 loading={isSubmitting}
-                disabled={!email || !password || isSubmitting || captchaBlocking}
+                disabled={!email || !password || isSubmitting}
                 testID="login-button"
               />
 

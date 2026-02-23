@@ -5,7 +5,8 @@ import * as Linking from 'expo-linking';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AnimatedSplash } from '@/components/ui';
-import { onAppContentReady } from '@/utils/app-ready';
+import { onAppContentReady, resetAppReady } from '@/utils/app-ready';
+import { onLogoutRequested } from '@/utils/auth-bridge';
 import { setPendingDeepLink } from '@/utils/deep-link-store';
 import '../global.css';
 
@@ -20,7 +21,17 @@ function resolveTabFromPath(path: string): string {
 
 function RootLayoutContent() {
   const { isDark } = useTheme();
+  const { signOut } = useAuth();
   const router = useRouter();
+
+  // Centralized logout handler — must be at root level (always mounted)
+  useEffect(() => {
+    return onLogoutRequested(() => {
+      resetAppReady();
+      signOut();
+      router.replace('/(auth)/login');
+    });
+  }, [signOut, router]);
 
   // Handle foreground deep links (Issue 4)
   useEffect(() => {
