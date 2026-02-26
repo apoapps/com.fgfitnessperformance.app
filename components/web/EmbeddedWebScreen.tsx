@@ -447,6 +447,12 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
           break;
         }
 
+        case 'AUTH_LOGOUT_REQUEST':
+          // Web user tapped logout — go straight to native logout
+          track('webview_logout_request', { screen: title });
+          requestLogout(title);
+          break;
+
         case 'AUTH_NEEDED':
         case 'AUTH_EXPIRED':
         case 'AUTH_ERROR':

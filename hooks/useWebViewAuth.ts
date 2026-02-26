@@ -72,6 +72,10 @@ export function useWebViewAuth(webViewRef: React.RefObject<WebView | null>) {
           injectSession();
           return true;
 
+        case 'AUTH_LOGOUT_REQUEST':
+          // User-initiated logout from web — do NOT re-inject, let parent handle
+          return false;
+
         default:
           return false;
       }
