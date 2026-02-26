@@ -40,10 +40,11 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
   '/app/nutrition': { title: 'FG NUTRITION' },
   '/app/profile': { title: 'PERFIL' },
   // Sub-routes
-  '/app/billing': { title: 'FACTURACION', backHref: '/app/profile' },
+  '/app/billing': { title: 'FACTURACIÓN', backHref: '/app/profile' },
+  '/app/schedule': { title: 'AGENDAR CONSULTA', backHref: '/app' },
   '/app/questionnaires': { title: 'CUESTIONARIOS', backHref: '/app' },
-  '/app/questionnaires/training-diagnostic': { title: 'DIAGNOSTICO', backHref: '/app/questionnaires' },
-  '/app/questionnaires/clinical-history': { title: 'HISTORIA CLINICA', backHref: '/app/questionnaires' },
+  '/app/questionnaires/training-diagnostic': { title: 'DIAGNÓSTICO', backHref: '/app/questionnaires' },
+  '/app/questionnaires/clinical-history': { title: 'HISTORIA CLÍNICA', backHref: '/app/questionnaires' },
   '/app/questionnaires/monitoring': { title: 'MONITOREO', backHref: '/app/questionnaires' },
   '/app/questionnaires/monitoring/history': { title: 'HISTORIAL', backHref: '/app/questionnaires' },
 };
@@ -57,7 +58,8 @@ function getDynamicPageConfig(path: string): PageConfig | undefined {
     return { title: 'RUTINA', backHref: '/app/training' };
   }
   if (path.startsWith('/app/training/exercise/')) {
-    return { title: 'EJERCICIO', backHref: '/app/training' };
+    // Exercise detail back → use browser history (goes back to the day view they came from)
+    return { title: 'EJERCICIO', backHref: '__history_back__' };
   }
   return undefined;
 }
@@ -81,6 +83,8 @@ const TAB_PATH_TO_NATIVE: Array<{ prefix: string; exact?: boolean; nativeRoute: 
   { prefix: '/app/nutrition', nativeRoute: '/(tabs)/nutrition' },
   { prefix: '/app/profile', nativeRoute: '/(tabs)/profile' },
   { prefix: '/app/billing', nativeRoute: '/(tabs)/profile' },
+  { prefix: '/app/schedule', nativeRoute: '/(tabs)/dashboard' },
+  { prefix: '/app/questionnaires', nativeRoute: '/(tabs)/dashboard' },
 ];
 
 /** Resolve a web path to the native tab it belongs to. Returns null for sub-routes (e.g. questionnaires). */
@@ -208,6 +212,10 @@ const EMBED_BOOTSTRAP_JS = `
 
       if (msg.type === 'NAVIGATE_TO' && msg.path) {
         window.location.href = msg.path;
+      }
+
+      if (msg.type === 'NAVIGATE_BACK') {
+        history.back();
       }
     } catch (_) {}
   });
@@ -350,7 +358,14 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
   // ---------- Back navigation ----------
 
   const handleBack = useCallback(() => {
-    if (headerBackHref && webViewRef.current) {
+    if (!headerBackHref || !webViewRef.current) return;
+
+    if (headerBackHref === '__history_back__') {
+      // Use browser history.back() for proper back navigation (e.g. exercise → day)
+      webViewRef.current.injectJavaScript(
+        buildInjectedMessage({ v: 2, type: 'NAVIGATE_BACK' })
+      );
+    } else {
       webViewRef.current.injectJavaScript(
         buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: headerBackHref })
       );
@@ -604,7 +619,7 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
           sharedCookiesEnabled
           thirdPartyCookiesEnabled
           pullToRefreshEnabled={false}
-          allowsBackForwardNavigationGestures={Platform.OS === 'ios'}
+          allowsBackForwardNavigationGestures={false}
           allowsInlineMediaPlayback
           mediaPlaybackRequiresUserAction={false}
           allowsFullscreenVideo

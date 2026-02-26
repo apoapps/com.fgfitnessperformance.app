@@ -68,7 +68,13 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={{ tabPress: () => emitTabReset('dashboard', TAB_ROOT_PATHS.dashboard) }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              emitTabReset('dashboard', TAB_ROOT_PATHS.dashboard);
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="workout"
@@ -82,7 +88,13 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={{ tabPress: () => emitTabReset('workout', TAB_ROOT_PATHS.workout) }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              emitTabReset('workout', TAB_ROOT_PATHS.workout);
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="nutrition"
@@ -96,7 +108,13 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={{ tabPress: () => emitTabReset('nutrition', TAB_ROOT_PATHS.nutrition) }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              emitTabReset('nutrition', TAB_ROOT_PATHS.nutrition);
+            }
+          },
+        })}
       />
       <Tabs.Screen
         name="profile"
@@ -110,7 +128,13 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={{ tabPress: () => emitTabReset('profile', TAB_ROOT_PATHS.profile) }}
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              emitTabReset('profile', TAB_ROOT_PATHS.profile);
+            }
+          },
+        })}
       />
     </Tabs>
   );

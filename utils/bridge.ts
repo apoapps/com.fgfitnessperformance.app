@@ -14,6 +14,7 @@ export type WebToNativeMessage =
   | { v: 2; type: 'AUTH_NEEDED' }
   | { v: 2; type: 'AUTH_EXPIRED' }
   | { v: 2; type: 'AUTH_ERROR'; message: string }
+  | { v: 2; type: 'AUTH_LOGOUT_REQUEST' }
   | { v: 2; type: 'NAVIGATE'; path: string }
   | { v: 2; type: 'OPEN_SHEET'; sheet: string; data?: unknown }
   | { v: 2; type: 'HAPTIC'; style: 'light' | 'medium' | 'heavy' | 'success' | 'error' }
@@ -27,7 +28,8 @@ export type NativeToWebMessage =
   | { v: 2; type: 'AUTH_SESSION'; access_token: string; refresh_token: string }
   | { v: 2; type: 'AUTH_LOGOUT' }
   | { v: 2; type: 'THEME_CHANGE'; theme: 'light' | 'dark' }
-  | { v: 2; type: 'NAVIGATE_TO'; path: string };
+  | { v: 2; type: 'NAVIGATE_TO'; path: string }
+  | { v: 2; type: 'NAVIGATE_BACK' };
 
 // Union type for parsing incoming messages
 export type BridgeMessage = WebToNativeMessage | NativeToWebMessage;

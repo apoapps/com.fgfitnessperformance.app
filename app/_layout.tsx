@@ -56,11 +56,10 @@ function RootLayoutContent() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'fade',
-          animationDuration: 300,
+          animation: 'default',
         }}
       >
-        <Stack.Screen name="index" />
+        <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen
           name="(auth)"
           options={{
