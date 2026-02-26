@@ -29,7 +29,8 @@ export type NativeToWebMessage =
   | { v: 2; type: 'AUTH_LOGOUT' }
   | { v: 2; type: 'THEME_CHANGE'; theme: 'light' | 'dark' }
   | { v: 2; type: 'NAVIGATE_TO'; path: string }
-  | { v: 2; type: 'NAVIGATE_BACK' };
+  | { v: 2; type: 'NAVIGATE_BACK' }
+  | { v: 2; type: 'NAVIGATE_REPLACE'; path: string };
 
 // Union type for parsing incoming messages
 export type BridgeMessage = WebToNativeMessage | NativeToWebMessage;

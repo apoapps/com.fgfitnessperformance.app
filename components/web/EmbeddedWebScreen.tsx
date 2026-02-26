@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui';
+import { SwipeBackGesture } from '@/components/web/SwipeBackGesture';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebViewAuth } from '@/hooks/useWebViewAuth';
@@ -231,13 +232,32 @@ const EMBED_BOOTSTRAP_JS = `
   const emitRoute = () => post({ v: 2, type: 'WEBVIEW_ROUTE', path: window.location.pathname + window.location.search });
   const emitReady = () => post({ v: 2, type: 'WEBVIEW_READY', path: window.location.pathname + window.location.search });
 
-  // Animate page transitions (iOS-style push/pop)
+  // Tab mapping — mirrors native TAB_PATH_TO_NATIVE for cross-tab detection
+  const TAB_ROOTS = [
+    { p: '/app', exact: true, t: 'dashboard' },
+    { p: '/app/training', t: 'workout' },
+    { p: '/app/nutrition', t: 'nutrition' },
+    { p: '/app/profile', t: 'profile' },
+    { p: '/app/billing', t: 'profile' },
+    { p: '/app/schedule', t: 'dashboard' },
+    { p: '/app/questionnaires', t: 'dashboard' },
+  ];
+  function getTab(path) {
+    for (var i = 0; i < TAB_ROOTS.length; i++) {
+      var r = TAB_ROOTS[i];
+      if (r.exact ? (path === r.p || path === r.p + '/') : (path === r.p || path.startsWith(r.p + '/')))
+        return r.t;
+    }
+    return null;
+  }
+
+  // Animate page transitions (iOS-style push only — pop handled by native SwipeBackGesture)
   const animateNav = (dir) => {
+    if (dir !== 'push') return;
     requestAnimationFrame(() => {
       const el = document.querySelector('.app-view-transition') || document.querySelector('main');
       if (!el) return;
-      const anim = dir === 'push' ? 'fg-push-in' : 'fg-pop-in';
-      el.style.animation = anim + ' 280ms cubic-bezier(0.32, 0.72, 0, 1)';
+      el.style.animation = 'fg-push-in 280ms cubic-bezier(0.32, 0.72, 0, 1)';
       el.addEventListener('animationend', () => { el.style.animation = ''; }, { once: true });
     });
   };
@@ -251,7 +271,10 @@ const EMBED_BOOTSTRAP_JS = `
       push.apply(this, arguments);
       const newPath = window.location.pathname;
       if (newPath !== lastPath) {
-        animateNav('push');
+        // Only animate within same tab — cross-tab handled by native tab switch
+        if (getTab(lastPath) === getTab(newPath)) {
+          animateNav('push');
+        }
         lastPath = newPath;
       }
       emitRoute();
@@ -264,10 +287,20 @@ const EMBED_BOOTSTRAP_JS = `
     window.addEventListener('popstate', () => {
       const newPath = window.location.pathname;
       if (newPath !== lastPath) {
-        animateNav('pop');
         lastPath = newPath;
       }
       emitRoute();
+    });
+
+    // Listen for NAVIGATE_REPLACE from native (cross-tab revert via replaceState)
+    window.addEventListener('message', (event) => {
+      try {
+        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (msg && msg.v === 2 && msg.type === 'NAVIGATE_REPLACE' && msg.path) {
+          replace.call(history, null, '', msg.path);
+          lastPath = msg.path;
+        }
+      } catch (_) {}
     });
   };
 
@@ -369,6 +402,10 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
   // Background color: dark for hero routes, light otherwise
   const chromeColor = isHeroRoute ? '#0f0f12' : '#f7f7f6';
 
+  // Swipe-back: enabled when not at the tab's root path
+  const tabRootPath = useMemo(() => stripQuery(path), [path]);
+  const canGoBack = cleanPath !== tabRootPath && !isHeroRoute;
+
   // ---------- Build source URL ----------
 
   const source = useMemo(() => {
@@ -405,6 +442,14 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
       );
     }
   }, [headerBackHref]);
+
+  // Swipe-back gesture handler
+  const handleSwipeBack = useCallback(() => {
+    if (!webViewRef.current) return;
+    webViewRef.current.injectJavaScript(
+      buildInjectedMessage({ v: 2, type: 'NAVIGATE_BACK' })
+    );
+  }, []);
 
   // ---------- Bridge message handler ----------
 
@@ -461,9 +506,9 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
           const currentTab = getNativeTabForPath(initialCleanPath);
 
           if (targetTab && currentTab && targetTab !== currentTab) {
-            // Navigate this WebView back to its own tab path so it's correct when user returns
+            // Revert this WebView to its own tab path via replaceState (no history entry, no animation)
             webViewRef.current?.injectJavaScript(
-              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: initialCleanPath })
+              buildInjectedMessage({ v: 2, type: 'NAVIGATE_REPLACE', path: initialCleanPath })
             );
             // Switch native tab bar
             router.replace(targetTab as any);
@@ -635,91 +680,93 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
         )}
       </SafeAreaView>
 
-      {/* WebView content */}
-      <View style={{ flex: 1 }}>
-        <WebView
-          ref={webViewRef}
-          source={source}
-          onMessage={onMessage}
-          onError={onError}
-          onLoadStart={onLoadStart}
-          onLoadEnd={onLoadEnd}
-          injectedJavaScriptBeforeContentLoaded={EMBED_BOOTSTRAP_JS}
-          javaScriptEnabled
-          domStorageEnabled
-          bounces={false}
-          overScrollMode="never"
-          setSupportMultipleWindows={false}
-          sharedCookiesEnabled
-          thirdPartyCookiesEnabled
-          pullToRefreshEnabled={false}
-          allowsBackForwardNavigationGestures={false}
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          allowsFullscreenVideo
-          onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-          allowsLinkPreview={false}
-          scrollEnabled
-          scalesPageToFit={false}
-          keyboardDisplayRequiresUserAction={false}
-          style={{
-            flex: 1,
-            opacity: isFirstReady ? 1 : 0,
-            backgroundColor: chromeColor,
-          }}
-        />
-
-        {/* Loading overlay — uses background color matching splash to avoid flickering */}
-        {!isFirstReady && !isError && (
-          <View
+      {/* WebView content with swipe-back gesture */}
+      <SwipeBackGesture canGoBack={canGoBack} onSwipeBack={handleSwipeBack}>
+        <View style={{ flex: 1 }}>
+          <WebView
+            ref={webViewRef}
+            source={source}
+            onMessage={onMessage}
+            onError={onError}
+            onLoadStart={onLoadStart}
+            onLoadEnd={onLoadEnd}
+            injectedJavaScriptBeforeContentLoaded={EMBED_BOOTSTRAP_JS}
+            javaScriptEnabled
+            domStorageEnabled
+            bounces={false}
+            overScrollMode="never"
+            setSupportMultipleWindows={false}
+            sharedCookiesEnabled
+            thirdPartyCookiesEnabled
+            pullToRefreshEnabled={false}
+            allowsBackForwardNavigationGestures={false}
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            allowsFullscreenVideo
+            onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+            allowsLinkPreview={false}
+            scrollEnabled
+            scalesPageToFit={false}
+            keyboardDisplayRequiresUserAction={false}
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.background,
+              flex: 1,
+              opacity: isFirstReady ? 1 : 0,
+              backgroundColor: chromeColor,
             }}
           />
-        )}
 
-        {/* Error overlay — only after MAX_RETRIES auto-retries exhausted */}
-        {isError && (
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.background,
-              paddingHorizontal: 24,
-              gap: 12,
-            }}
-          >
-            <Text variant="bodyMedium" style={{ textAlign: 'center' }}>
-              No pudimos cargar esta vista.
-            </Text>
-            <Pressable
-              onPress={handleManualRetry}
+          {/* Loading overlay — uses background color matching splash to avoid flickering */}
+          {!isFirstReady && !isError && (
+            <View
               style={{
-                backgroundColor: colors.primary,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-                borderRadius: 10,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.background,
+              }}
+            />
+          )}
+
+          {/* Error overlay — only after MAX_RETRIES auto-retries exhausted */}
+          {isError && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.background,
+                paddingHorizontal: 24,
+                gap: 12,
               }}
             >
-              <Text variant="bodySm" style={{ color: '#09090b', fontWeight: '700' }}>
-                Reintentar
+              <Text variant="bodyMedium" style={{ textAlign: 'center' }}>
+                No pudimos cargar esta vista.
               </Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
+              <Pressable
+                onPress={handleManualRetry}
+                style={{
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                }}
+              >
+                <Text variant="bodySm" style={{ color: '#09090b', fontWeight: '700' }}>
+                  Reintentar
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </SwipeBackGesture>
     </View>
   );
 }

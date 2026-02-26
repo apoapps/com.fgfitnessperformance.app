@@ -44,6 +44,26 @@ bun run android          # Iniciar en Android
 bun test                 # Ejecutar tests
 ```
 
+## EAS Build & Deploy
+
+**SIEMPRE usar builds locales** (`--local`). La Mac Mini es la build machine. No usar builds remotos en EAS (free tier es lento).
+
+```bash
+# Build local iOS + submit a TestFlight
+npx eas-cli build --platform ios --profile production --local --non-interactive
+npx eas-cli submit --platform ios --path ./build-XXXXX.ipa --profile production --non-interactive
+
+# Git auth: cuenta activa debe ser "apoapps" (no fgfitnessperformance)
+gh auth switch --user apoapps
+gh auth setup-git
+```
+
+**Flujo para TestFlight**:
+1. Bump `buildNumber` en `app.json` → `ios.buildNumber`
+2. `npx eas-cli build --platform ios --profile production --local --non-interactive`
+3. `npx eas-cli submit --platform ios --path ./build-XXXXX.ipa --profile production --non-interactive`
+4. Commit + push
+
 ## Arquitectura Hibrida WebView
 
 ```
