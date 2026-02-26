@@ -8,7 +8,6 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui';
-import { SwipeBackGesture } from '@/components/web/SwipeBackGesture';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebViewAuth } from '@/hooks/useWebViewAuth';
@@ -120,6 +119,9 @@ const EMBED_BOOTSTRAP_JS = `
     } catch (_) {}
   };
 
+  // Mark as embedded immediately so CSS hides web navbar/tabbar before React hydration
+  document.documentElement.classList.add('app-embedded');
+
   const ensureViewport = () => {
     let viewport = document.querySelector('meta[name="viewport"]');
     if (!viewport) {
@@ -152,15 +154,7 @@ const EMBED_BOOTSTRAP_JS = `
     'input, textarea, select {',
     '  font-size: 16px !important;',
     '}',
-    '* { -webkit-tap-highlight-color: transparent; }',
-    '@keyframes fg-push-in {',
-    '  from { transform: translateX(100%); box-shadow: -4px 0 24px rgba(0,0,0,0.15); }',
-    '  to { transform: translateX(0); box-shadow: none; }',
-    '}',
-    '@keyframes fg-pop-in {',
-    '  from { transform: translateX(-30%); filter: brightness(0.9); }',
-    '  to { transform: translateX(0); filter: brightness(1); }',
-    '}'
+    '* { -webkit-tap-highlight-color: transparent; }'
   ].join('\\n');
 
   // Block pinch-to-zoom gestures
@@ -251,17 +245,6 @@ const EMBED_BOOTSTRAP_JS = `
     return null;
   }
 
-  // Animate page transitions (iOS-style push only — pop handled by native SwipeBackGesture)
-  const animateNav = (dir) => {
-    if (dir !== 'push') return;
-    requestAnimationFrame(() => {
-      const el = document.querySelector('.app-view-transition') || document.querySelector('main');
-      if (!el) return;
-      el.style.animation = 'fg-push-in 280ms cubic-bezier(0.32, 0.72, 0, 1)';
-      el.addEventListener('animationend', () => { el.style.animation = ''; }, { once: true });
-    });
-  };
-
   const wrapHistory = () => {
     const push = history.pushState;
     const replace = history.replaceState;
@@ -271,10 +254,6 @@ const EMBED_BOOTSTRAP_JS = `
       push.apply(this, arguments);
       const newPath = window.location.pathname;
       if (newPath !== lastPath) {
-        // Only animate within same tab — cross-tab handled by native tab switch
-        if (getTab(lastPath) === getTab(newPath)) {
-          animateNav('push');
-        }
         lastPath = newPath;
       }
       emitRoute();
@@ -442,14 +421,6 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
       );
     }
   }, [headerBackHref]);
-
-  // Swipe-back gesture handler
-  const handleSwipeBack = useCallback(() => {
-    if (!webViewRef.current) return;
-    webViewRef.current.injectJavaScript(
-      buildInjectedMessage({ v: 2, type: 'NAVIGATE_BACK' })
-    );
-  }, []);
 
   // ---------- Bridge message handler ----------
 
@@ -680,8 +651,7 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
         )}
       </SafeAreaView>
 
-      {/* WebView content with swipe-back gesture */}
-      <SwipeBackGesture canGoBack={canGoBack} onSwipeBack={handleSwipeBack}>
+      {/* WebView content */}
         <View style={{ flex: 1 }}>
           <WebView
             ref={webViewRef}
@@ -699,7 +669,7 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
             sharedCookiesEnabled
             thirdPartyCookiesEnabled
             pullToRefreshEnabled={false}
-            allowsBackForwardNavigationGestures={false}
+            allowsBackForwardNavigationGestures={true}
             allowsInlineMediaPlayback
             mediaPlaybackRequiresUserAction={false}
             allowsFullscreenVideo
@@ -766,7 +736,6 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
             </View>
           )}
         </View>
-      </SwipeBackGesture>
     </View>
   );
 }
