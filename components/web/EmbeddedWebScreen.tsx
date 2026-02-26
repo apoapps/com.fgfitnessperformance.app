@@ -151,7 +151,15 @@ const EMBED_BOOTSTRAP_JS = `
     'input, textarea, select {',
     '  font-size: 16px !important;',
     '}',
-    '* { -webkit-tap-highlight-color: transparent; }'
+    '* { -webkit-tap-highlight-color: transparent; }',
+    '@keyframes fg-push-in {',
+    '  from { transform: translateX(100%); box-shadow: -4px 0 24px rgba(0,0,0,0.15); }',
+    '  to { transform: translateX(0); box-shadow: none; }',
+    '}',
+    '@keyframes fg-pop-in {',
+    '  from { transform: translateX(-30%); filter: brightness(0.9); }',
+    '  to { transform: translateX(0); filter: brightness(1); }',
+    '}'
   ].join('\\n');
 
   // Block pinch-to-zoom gestures
@@ -223,18 +231,44 @@ const EMBED_BOOTSTRAP_JS = `
   const emitRoute = () => post({ v: 2, type: 'WEBVIEW_ROUTE', path: window.location.pathname + window.location.search });
   const emitReady = () => post({ v: 2, type: 'WEBVIEW_READY', path: window.location.pathname + window.location.search });
 
+  // Animate page transitions (iOS-style push/pop)
+  const animateNav = (dir) => {
+    requestAnimationFrame(() => {
+      const el = document.querySelector('.app-view-transition') || document.querySelector('main');
+      if (!el) return;
+      const anim = dir === 'push' ? 'fg-push-in' : 'fg-pop-in';
+      el.style.animation = anim + ' 280ms cubic-bezier(0.32, 0.72, 0, 1)';
+      el.addEventListener('animationend', () => { el.style.animation = ''; }, { once: true });
+    });
+  };
+
   const wrapHistory = () => {
     const push = history.pushState;
     const replace = history.replaceState;
+    let lastPath = window.location.pathname;
+
     history.pushState = function() {
       push.apply(this, arguments);
+      const newPath = window.location.pathname;
+      if (newPath !== lastPath) {
+        animateNav('push');
+        lastPath = newPath;
+      }
       emitRoute();
     };
     history.replaceState = function() {
       replace.apply(this, arguments);
+      lastPath = window.location.pathname;
       emitRoute();
     };
-    window.addEventListener('popstate', emitRoute);
+    window.addEventListener('popstate', () => {
+      const newPath = window.location.pathname;
+      if (newPath !== lastPath) {
+        animateNav('pop');
+        lastPath = newPath;
+      }
+      emitRoute();
+    });
   };
 
   wrapHistory();
