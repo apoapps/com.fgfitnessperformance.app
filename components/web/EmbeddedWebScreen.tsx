@@ -36,6 +36,7 @@ interface PageConfig {
 /** Mirror of web's PAGE_CONFIG — routes that show a native header. */
 const PAGE_CONFIG: Record<string, PageConfig> = {
   // Tab root pages (non-hero)
+  '/app/training': { title: 'FG TRAINING' },
   '/app/nutrition': { title: 'FG NUTRITION' },
   '/app/profile': { title: 'PERFIL' },
   // Sub-routes
@@ -48,10 +49,21 @@ const PAGE_CONFIG: Record<string, PageConfig> = {
 };
 
 /** Routes under /app/training/* that need a back button to /app/training */
-const TRAINING_SUB_ROUTE_PREFIX = '/app/training/exercise/';
+const TRAINING_SUB_ROUTE_PREFIX = '/app/training/';
+
+/** Dynamic route matching for routes with params */
+function getDynamicPageConfig(path: string): PageConfig | undefined {
+  if (path.startsWith('/app/training/day/')) {
+    return { title: 'RUTINA', backHref: '/app/training' };
+  }
+  if (path.startsWith('/app/training/exercise/')) {
+    return { title: 'EJERCICIO', backHref: '/app/training' };
+  }
+  return undefined;
+}
 
 /** Routes with dark hero sections — no native header, dark SafeArea. */
-const HERO_ROUTES = new Set(['/app', '/app/training']);
+const HERO_ROUTES = new Set(['/app']);
 
 /** Video embed domains allowed to load inside iframes. */
 const ALLOWED_EMBED_DOMAINS = [
@@ -306,10 +318,10 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
   const cleanPath = useMemo(() => stripQuery(currentPath), [currentPath]);
 
   const isHeroRoute = HERO_ROUTES.has(cleanPath);
-  const pageConfig = PAGE_CONFIG[cleanPath];
-  const isTrainingSubRoute = cleanPath.startsWith(TRAINING_SUB_ROUTE_PREFIX);
+  const pageConfig = PAGE_CONFIG[cleanPath] ?? getDynamicPageConfig(cleanPath);
+  const isTrainingSubRoute = cleanPath.startsWith(TRAINING_SUB_ROUTE_PREFIX) && cleanPath !== '/app/training';
   const showNativeHeader = !isHeroRoute;
-  const headerTitle = pageConfig?.title ?? (isTrainingSubRoute ? 'EJERCICIO' : title);
+  const headerTitle = pageConfig?.title ?? (isTrainingSubRoute ? 'RUTINA' : title);
   const headerBackHref = pageConfig?.backHref ?? (isTrainingSubRoute ? '/app/training' : undefined);
 
   // Background color: dark for hero routes, light otherwise
