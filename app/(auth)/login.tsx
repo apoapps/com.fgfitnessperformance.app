@@ -294,16 +294,28 @@ export default function LoginScreen() {
                 testID="login-button"
               />
 
-              <Pressable
-                onPress={() => WebBrowser.openBrowserAsync(`${WEB_APP_URL}/forgot-password`)}
-              >
-                <Text
-                  variant="caption"
-                  style={{ textAlign: 'center', color: colors.primary, textDecorationLine: 'underline' }}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Pressable
+                  onPress={() => WebBrowser.openBrowserAsync(`${WEB_APP_URL}/forgot-password`)}
                 >
-                  ¿Olvidaste tu contrasena?
-                </Text>
-              </Pressable>
+                  <Text
+                    variant="caption"
+                    style={{ color: colors.textMuted, textDecorationLine: 'underline' }}
+                  >
+                    ¿Olvidaste tu contrasena?
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => WebBrowser.openBrowserAsync(`${WEB_APP_URL}/signup`)}
+                >
+                  <Text
+                    variant="caption"
+                    style={{ color: colors.primary, textDecorationLine: 'underline' }}
+                  >
+                    Crear cuenta
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </Card>
 
