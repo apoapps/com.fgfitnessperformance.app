@@ -122,6 +122,9 @@ const EMBED_BOOTSTRAP_JS = `
   // Mark as embedded immediately so CSS hides web navbar/tabbar before React hydration
   document.documentElement.classList.add('app-embedded');
 
+  // Set server-readable cookie so Next.js SSR never renders web chrome at all
+  document.cookie = 'fg_embed=1; path=/app; SameSite=Lax; max-age=86400';
+
   const ensureViewport = () => {
     let viewport = document.querySelector('meta[name="viewport"]');
     if (!viewport) {
@@ -285,14 +288,15 @@ const EMBED_BOOTSTRAP_JS = `
 
   wrapHistory();
 
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    emitReady();
-    emitRoute();
+  // Wait for full page load (HTML + CSS + images) before signaling ready.
+  // This keeps the native loading overlay until content is 100% rendered.
+  function emitWhenReady() {
+    requestAnimationFrame(() => { emitReady(); emitRoute(); });
+  }
+  if (document.readyState === 'complete') {
+    emitWhenReady();
   } else {
-    document.addEventListener('DOMContentLoaded', () => {
-      emitReady();
-      emitRoute();
-    }, { once: true });
+    window.addEventListener('load', emitWhenReady, { once: true });
   }
 })();
 true;
