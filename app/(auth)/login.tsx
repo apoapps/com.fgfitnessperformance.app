@@ -124,13 +124,13 @@ export default function LoginScreen() {
 
         const msg =
           authError.message === 'Invalid login credentials'
-            ? 'Email o contrasena incorrectos.'
+            ? 'Email o contraseña incorrectos.'
             : authError.message;
         setLocalError(msg);
       }
     } catch (err) {
       console.log('[login] Exception:', err);
-      setLocalError('Error de conexion. Intenta de nuevo.');
+      setLocalError('Error de conexión. Intenta de nuevo.');
     } finally {
       setLocalLoading(false);
     }
@@ -155,12 +155,12 @@ export default function LoginScreen() {
       const returnedState = url.searchParams.get('state');
 
       if (returnedState !== state) {
-        setLocalError('Sesion invalida. Intenta de nuevo.');
+        setLocalError('Sesión inválida. Intenta de nuevo.');
         return;
       }
 
       if (!code) {
-        setLocalError('No se recibio codigo de autorizacion.');
+        setLocalError('No se recibió código de autorización.');
         return;
       }
 
@@ -183,13 +183,13 @@ export default function LoginScreen() {
       });
 
       if (sessionError) {
-        setLocalError('Error al establecer sesion. Intenta de nuevo.');
+        setLocalError('Error al establecer sesión. Intenta de nuevo.');
         return;
       }
     } else if (result.type === 'cancel') {
       // User cancelled
     } else {
-      setLocalError('No se pudo completar el inicio de sesion.');
+      setLocalError('No se pudo completar el inicio de sesión.');
     }
   };
 
@@ -235,7 +235,7 @@ export default function LoginScreen() {
           <Card variant="glass">
             <View style={{ gap: 20 }}>
               <Text variant="title" style={{ textAlign: 'center' }}>
-                Iniciar Sesion
+                Iniciar Sesión
               </Text>
 
               {/* Error Message */}
@@ -267,8 +267,8 @@ export default function LoginScreen() {
               />
 
               <Input
-                label="Contrasena"
-                placeholder="Tu contrasena"
+                label="Contraseña"
+                placeholder="Tu contraseña"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -286,7 +286,7 @@ export default function LoginScreen() {
               />
 
               <Button
-                title="INICIAR SESION"
+                title="INICIAR SESIÓN"
                 variant="primary"
                 onPress={handleLogin}
                 loading={isSubmitting}
@@ -302,7 +302,7 @@ export default function LoginScreen() {
                     variant="caption"
                     style={{ color: colors.textMuted, textDecorationLine: 'underline' }}
                   >
-                    ¿Olvidaste tu contrasena?
+                    ¿Olvidaste tu contraseña?
                   </Text>
                 </Pressable>
                 <Pressable
