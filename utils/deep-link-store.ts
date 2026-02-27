@@ -19,6 +19,11 @@ export function setPendingDeepLink(path: string): void {
   AsyncStorage.setItem(DEEP_LINK_KEY, path).catch(() => {});
 }
 
+/** Read pending deep link without consuming it. */
+export function peekPendingDeepLink(): string | null {
+  return pendingPath;
+}
+
 export function consumePendingDeepLink(): string | null {
   const path = pendingPath;
   pendingPath = null;

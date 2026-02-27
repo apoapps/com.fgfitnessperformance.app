@@ -11,7 +11,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebViewAuth } from '@/hooks/useWebViewAuth';
 import { parseBridgeMessage, buildInjectedMessage } from '@/utils/bridge';
-import { consumePendingDeepLink } from '@/utils/deep-link-store';
+import { peekPendingDeepLink, consumePendingDeepLink } from '@/utils/deep-link-store';
 import { requestLogout, isLogoutInProgress, registerWebView, unregisterWebView } from '@/utils/auth-bridge';
 import { onTabReset } from '@/utils/tab-events';
 import { setAppContentReady, setAppContentError } from '@/utils/app-ready';
@@ -239,16 +239,6 @@ const EMBED_BOOTSTRAP_JS = `
       emitRoute();
     });
 
-    // Listen for NAVIGATE_REPLACE from native (cross-tab revert via replaceState)
-    window.addEventListener('message', (event) => {
-      try {
-        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (msg && msg.v === 2 && msg.type === 'NAVIGATE_REPLACE' && msg.path) {
-          replace.call(history, null, '', msg.path);
-          lastPath = msg.path;
-        }
-      } catch (_) {}
-    });
   };
 
   wrapHistory();
@@ -386,14 +376,19 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
             track('webview_ready', { screen: title, path: msg.path });
           }
 
-          // Check for pending deep link and navigate WebView to it
-          const deepLink = consumePendingDeepLink();
+          // Check for pending deep link — only consume if it belongs to this tab
+          const deepLink = peekPendingDeepLink();
           if (deepLink && webViewRef.current) {
             const webPath = deepLink.startsWith('/app') ? deepLink : `/app${deepLink}`;
-            track('webview_deep_link', { screen: title, target: webPath });
-            webViewRef.current.injectJavaScript(
-              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: webPath })
-            );
+            const deepLinkTab = getNativeTabForPath(stripQuery(webPath));
+            const myTab = getNativeTabForPath(stripQuery(path));
+            if (deepLinkTab === myTab) {
+              consumePendingDeepLink(); // consume only if this is the right tab
+              track('webview_deep_link', { screen: title, target: webPath });
+              webViewRef.current.injectJavaScript(
+                buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: webPath })
+              );
+            }
           }
           break;
         }
@@ -404,17 +399,23 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
 
           // Logo click in embedded mode → redirect to /app (dashboard) instead of landing
           if (newCleanPath === '/' || newCleanPath === '') {
-            webViewRef.current?.injectJavaScript(
-              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: '/app' })
-            );
-            // Also switch to dashboard tab
-            router.replace('/(tabs)/dashboard' as any);
+            // If already on dashboard tab, just navigate back to /app without tab switch
+            if (initialCleanPath === '/app') {
+              webViewRef.current?.injectJavaScript(
+                buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: '/app' })
+              );
+            } else {
+              webViewRef.current?.injectJavaScript(
+                buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: initialCleanPath })
+              );
+              router.replace('/(tabs)/dashboard' as any);
+            }
             break;
           }
 
           // Detect web logout — web navigated to /login.
           // auth-bridge ensures only the first WebView triggers the actual logout.
-          if (newCleanPath === '/login' || newCleanPath.startsWith('/login')) {
+          if (newCleanPath === '/login' || newCleanPath.startsWith('/login/')) {
             requestLogout(title);
             break;
           }
@@ -445,7 +446,13 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
           const navTarget = getNativeTabForPath(msg.path);
           const navCurrent = getNativeTabForPath(stripQuery(path));
           if (navTarget && navCurrent && navTarget !== navCurrent) {
+            // Cross-tab: switch native tab bar
             router.replace(navTarget as any);
+          } else if (navTarget && navTarget === navCurrent) {
+            // Same tab: navigate within this WebView
+            webViewRef.current?.injectJavaScript(
+              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: msg.path })
+            );
           }
           track('webview_navigate', { screen: title, path: msg.path });
           break;
