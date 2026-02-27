@@ -49,9 +49,15 @@ bun test                 # Ejecutar tests
 **SIEMPRE usar builds locales** (`--local`). La Mac Mini es la build machine. No usar builds remotos en EAS (free tier es lento).
 
 ```bash
-# Build local iOS + submit a TestFlight
+# Build local iOS
 npx eas-cli build --platform ios --profile production --local --non-interactive
-npx eas-cli submit --platform ios --path ./build-XXXXX.ipa --profile production --non-interactive
+
+# Submit DIRECTO a TestFlight (instantáneo, sin queue)
+# Credenciales en .env.local (APPLE_ID, APP_SPECIFIC_PASSWORD)
+xcrun altool --upload-app -f ./build-XXXXX.ipa -t ios -u $APPLE_ID -p $APP_SPECIFIC_PASSWORD
+
+# Submit via EAS (LENTO, free tier queue — evitar)
+# npx eas-cli submit --platform ios --path ./build-XXXXX.ipa --profile production --non-interactive
 
 # Git auth: cuenta activa debe ser "apoapps" (no fgfitnessperformance)
 gh auth switch --user apoapps
@@ -61,7 +67,7 @@ gh auth setup-git
 **Flujo para TestFlight**:
 1. Bump `buildNumber` en `app.json` → `ios.buildNumber`
 2. `npx eas-cli build --platform ios --profile production --local --non-interactive`
-3. `npx eas-cli submit --platform ios --path ./build-XXXXX.ipa --profile production --non-interactive`
+3. `source .env.local && xcrun altool --upload-app -f ./build-XXXXX.ipa -t ios -u $APPLE_ID -p $APP_SPECIFIC_PASSWORD`
 4. Commit + push
 
 ## Arquitectura Hibrida WebView

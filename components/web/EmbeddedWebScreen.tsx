@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform, Pressable, View } from 'react-native';
 import { WebView, type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 import * as Linking from 'expo-linking';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -28,43 +26,7 @@ interface EmbeddedWebScreenProps {
   tabName?: string;
 }
 
-interface PageConfig {
-  title: string;
-  backHref?: string;
-}
-
-/** Mirror of web's PAGE_CONFIG — routes that show a native header. */
-const PAGE_CONFIG: Record<string, PageConfig> = {
-  // Tab root pages (non-hero)
-  '/app/training': { title: 'FG TRAINING' },
-  '/app/nutrition': { title: 'FG NUTRITION' },
-  '/app/profile': { title: 'PERFIL' },
-  // Sub-routes
-  '/app/billing': { title: 'FACTURACIÓN', backHref: '/app/profile' },
-  '/app/schedule': { title: 'AGENDAR CONSULTA', backHref: '/app' },
-  '/app/questionnaires': { title: 'CUESTIONARIOS', backHref: '/app' },
-  '/app/questionnaires/training-diagnostic': { title: 'DIAGNÓSTICO', backHref: '/app/questionnaires' },
-  '/app/questionnaires/clinical-history': { title: 'HISTORIA CLÍNICA', backHref: '/app/questionnaires' },
-  '/app/questionnaires/monitoring': { title: 'MONITOREO', backHref: '/app/questionnaires' },
-  '/app/questionnaires/monitoring/history': { title: 'HISTORIAL', backHref: '/app/questionnaires' },
-};
-
-/** Routes under /app/training/* that need a back button to /app/training */
-const TRAINING_SUB_ROUTE_PREFIX = '/app/training/';
-
-/** Dynamic route matching for routes with params */
-function getDynamicPageConfig(path: string): PageConfig | undefined {
-  if (path.startsWith('/app/training/day/')) {
-    return { title: 'RUTINA', backHref: '/app/training' };
-  }
-  if (path.startsWith('/app/training/exercise/')) {
-    // Exercise detail back → use browser history (goes back to the day view they came from)
-    return { title: 'EJERCICIO', backHref: '__history_back__' };
-  }
-  return undefined;
-}
-
-/** Routes with dark hero sections — no native header, dark SafeArea. */
+/** Routes with dark hero sections — dark status bar background. */
 const HERO_ROUTES = new Set(['/app']);
 
 /** Video embed domains allowed to load inside iframes. */
@@ -376,11 +338,6 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
   const cleanPath = useMemo(() => stripQuery(currentPath), [currentPath]);
 
   const isHeroRoute = HERO_ROUTES.has(cleanPath);
-  const pageConfig = PAGE_CONFIG[cleanPath] ?? getDynamicPageConfig(cleanPath);
-  const isTrainingSubRoute = cleanPath.startsWith(TRAINING_SUB_ROUTE_PREFIX) && cleanPath !== '/app/training';
-  const showNativeHeader = !isHeroRoute;
-  const headerTitle = pageConfig?.title ?? (isTrainingSubRoute ? 'RUTINA' : title);
-  const headerBackHref = pageConfig?.backHref ?? (isTrainingSubRoute ? '/app/training' : undefined);
 
   // Background color: dark for hero routes, light otherwise
   const chromeColor = isHeroRoute ? '#0f0f12' : '#f7f7f6';
@@ -408,23 +365,6 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
       injectLogout();
     }
   }, [isAuthenticated, injectLogout]);
-
-  // ---------- Back navigation ----------
-
-  const handleBack = useCallback(() => {
-    if (!headerBackHref || !webViewRef.current) return;
-
-    if (headerBackHref === '__history_back__') {
-      // Use browser history.back() for proper back navigation (e.g. exercise → day)
-      webViewRef.current.injectJavaScript(
-        buildInjectedMessage({ v: 2, type: 'NAVIGATE_BACK' })
-      );
-    } else {
-      webViewRef.current.injectJavaScript(
-        buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: headerBackHref })
-      );
-    }
-  }, [headerBackHref]);
 
   // ---------- Bridge message handler ----------
 
@@ -599,63 +539,11 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
       {/* Status bar: light text on dark hero, dark text on light header */}
       {isHeroRoute && <StatusBar style="light" />}
 
-      <SafeAreaView edges={['top']} style={{ backgroundColor: chromeColor }}>
-        {showNativeHeader && (
-          <View
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 16,
-              backgroundColor: '#f7f7f6',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            {/* Back arrow — only when route has backHref */}
-            {headerBackHref ? (
-              <Pressable
-                onPress={handleBack}
-                hitSlop={8}
-                style={{
-                  width: 32,
-                  height: 32,
-                  marginLeft: -4,
-                  borderRadius: 8,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="arrow-back" size={20} color="#09090b" />
-              </Pressable>
-            ) : null}
+      {/* Header is now rendered inside the web DOM (app-header component).
+          This unifies header + content into a single rendering layer,
+          eliminating visual tearing during iOS swipe-back gesture. */}
 
-            {/* Title + yellow accent bar (matches web AppHeader exactly) */}
-            <View style={{ flexDirection: 'column', gap: 4 }}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '700',
-                  letterSpacing: 0.5,
-                  textTransform: 'uppercase',
-                  color: '#09090b',
-                }}
-              >
-                {headerTitle}
-              </Text>
-              <View
-                style={{
-                  width: 48,
-                  height: 4,
-                  backgroundColor: '#ffd801',
-                  borderRadius: 2,
-                }}
-              />
-            </View>
-          </View>
-        )}
-      </SafeAreaView>
-
-      {/* WebView content */}
+      {/* WebView content — full screen edge-to-edge */}
         <View style={{ flex: 1 }}>
           <WebView
             ref={webViewRef}
