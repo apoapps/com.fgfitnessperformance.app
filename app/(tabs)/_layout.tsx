@@ -52,7 +52,7 @@ export default function TabLayout() {
           fontSize: 11,
           fontWeight: '500',
         },
-        lazy: false,
+        lazy: true,
         freezeOnBlur: true,
       }}
     >

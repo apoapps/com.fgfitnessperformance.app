@@ -5,7 +5,7 @@ import * as Linking from 'expo-linking';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AnimatedSplash } from '@/components/ui';
-import { onAppContentReady, resetAppReady } from '@/utils/app-ready';
+import { onAppContentReady, onAppContentError, resetAppReady } from '@/utils/app-ready';
 import { onLogoutRequested } from '@/utils/auth-bridge';
 import { setPendingDeepLink } from '@/utils/deep-link-store';
 import '../global.css';
@@ -84,12 +84,13 @@ function RootLayoutContent() {
   );
 }
 
-// Splash shown once on cold start, never again.
-// Waits for BOTH auth AND first WebView ready (if authenticated) to avoid
-// intermediate spinners between splash and content (Issue 7).
+// Splash rendered as overlay so children (tabs + WebViews) load behind it.
+// Previously splash replaced children, so WebViews couldn't start loading
+// until the 8s safety timeout — causing the actual delay users experienced.
 function SplashController({ children }: { children: React.ReactNode }) {
   const [showSplash, setShowSplash] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const [isSlow, setIsSlow] = useState(false);
   const readyFired = useRef(false);
   const { isLoading, isAuthenticated } = useAuth();
 
@@ -111,25 +112,38 @@ function SplashController({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Safety timeout: max 8s total splash time
-    const safetyTimer = setTimeout(() => {
+    // Show "Conectando..." after 5s if still loading
+    const slowTimer = setTimeout(() => {
+      if (!readyFired.current) setIsSlow(true);
+    }, 5000);
+
+    // Listen for error (all retries exhausted) — dismiss splash to show error overlay
+    const unsubError = onAppContentError(() => {
       if (!readyFired.current) {
         readyFired.current = true;
         setIsReady(true);
       }
-    }, 8000);
+    });
 
     return () => {
       unsubscribe();
-      clearTimeout(safetyTimer);
+      unsubError();
+      clearTimeout(slowTimer);
     };
   }, [isLoading, isAuthenticated]);
 
-  if (showSplash) {
-    return <AnimatedSplash isReady={isReady} onComplete={() => setShowSplash(false)} />;
-  }
-
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {showSplash && (
+        <AnimatedSplash
+          isReady={isReady}
+          isSlow={isSlow}
+          onComplete={() => setShowSplash(false)}
+        />
+      )}
+    </>
+  );
 }
 
 export default function RootLayout() {

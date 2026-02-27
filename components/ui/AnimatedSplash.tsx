@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
@@ -16,9 +16,11 @@ const MiniLogoYellow = require('../../assets/mini-logo-yellow.svg');
 interface AnimatedSplashProps {
   onComplete: () => void;
   isReady?: boolean;
+  /** Show "Conectando..." text when loading is slow. */
+  isSlow?: boolean;
 }
 
-export function AnimatedSplash({ onComplete, isReady = false }: AnimatedSplashProps) {
+export function AnimatedSplash({ onComplete, isReady = false, isSlow = false }: AnimatedSplashProps) {
   const { colors } = useTheme();
   const opacity = useSharedValue(0);
   const hasStartedExit = useRef(false);
@@ -59,18 +61,39 @@ export function AnimatedSplash({ onComplete, isReady = false }: AnimatedSplashPr
         contentFit="contain"
         priority="high"
       />
+      {isSlow && (
+        <>
+          <ActivityIndicator
+            color={colors.primary}
+            size="small"
+            style={styles.spinner}
+          />
+          <Animated.Text style={[styles.slowText, { color: colors.textMuted }]}>
+            Conectando...
+          </Animated.Text>
+        </>
+      )}
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logo: {
     width: 160,
     height: 160,
+  },
+  spinner: {
+    marginTop: 24,
+  },
+  slowText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

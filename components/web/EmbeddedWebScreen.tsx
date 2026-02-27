@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, View } from 'react-native';
 import { WebView, type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
+import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
 import * as Haptics from 'expo-haptics';
 import { StatusBar } from 'expo-status-bar';
@@ -13,7 +14,9 @@ import { parseBridgeMessage, buildInjectedMessage } from '@/utils/bridge';
 import { consumePendingDeepLink } from '@/utils/deep-link-store';
 import { requestLogout, isLogoutInProgress, registerWebView, unregisterWebView } from '@/utils/auth-bridge';
 import { onTabReset } from '@/utils/tab-events';
-import { setAppContentReady } from '@/utils/app-ready';
+import { setAppContentReady, setAppContentError } from '@/utils/app-ready';
+
+const MiniLogoYellow = require('../../assets/mini-logo-yellow.svg');
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -436,9 +439,15 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
           break;
         }
 
-        case 'NAVIGATE':
+        case 'NAVIGATE': {
+          const navTarget = getNativeTabForPath(msg.path);
+          const navCurrent = getNativeTabForPath(stripQuery(path));
+          if (navTarget && navCurrent && navTarget !== navCurrent) {
+            router.replace(navTarget as any);
+          }
           track('webview_navigate', { screen: title, path: msg.path });
           break;
+        }
 
         case 'OPEN_EXTERNAL':
           void Linking.openURL(msg.url);
@@ -513,6 +522,7 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
       }, RETRY_DELAY_MS);
     } else {
       setIsError(true);
+      setAppContentError(); // Dismiss splash to reveal error overlay
     }
   }, [title, currentPath]);
 
@@ -577,7 +587,7 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
             }}
           />
 
-          {/* Loading overlay — uses background color matching splash to avoid flickering */}
+          {/* Loading overlay — branded with logo + spinner */}
           {!isFirstReady && !isError && (
             <View
               style={{
@@ -590,7 +600,18 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
                 justifyContent: 'center',
                 backgroundColor: colors.background,
               }}
-            />
+            >
+              <Image
+                source={MiniLogoYellow}
+                style={{ width: 80, height: 80 }}
+                contentFit="contain"
+              />
+              <ActivityIndicator
+                color={colors.primary}
+                size="small"
+                style={{ marginTop: 20 }}
+              />
+            </View>
           )}
 
           {/* Error overlay — only after MAX_RETRIES auto-retries exhausted */}
