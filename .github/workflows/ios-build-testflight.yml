@@ -1,0 +1,90 @@
+name: iOS Build & Upload to TestFlight
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: false
+
+jobs:
+  build-and-upload:
+    name: Build iOS & Upload to TestFlight
+    runs-on: [self-hosted, macOS, ios-builder]
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.0"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Bump buildNumber in app.json
+        run: |
+          CURRENT=$(node -e "const a=require('./app.json'); console.log(a.expo.ios.buildNumber)")
+          NEXT=$((CURRENT + 1))
+          node -e "
+            const fs = require('fs');
+            const a = JSON.parse(fs.readFileSync('./app.json','utf8'));
+            a.expo.ios.buildNumber = String($NEXT);
+            fs.writeFileSync('./app.json', JSON.stringify(a, null, 2) + '\n');
+          "
+          echo "Bumped buildNumber: $CURRENT -> $NEXT"
+          echo "BUILD_NUMBER=$NEXT" >> $GITHUB_ENV
+
+      - name: Commit bumped buildNumber
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app.json
+          git commit -m "chore: bump buildNumber to $BUILD_NUMBER [skip ci]"
+          git push origin main
+
+      - name: Build iOS IPA (local EAS build)
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_KEY }}
+          EXPO_PUBLIC_WEB_APP_URL: ${{ secrets.EXPO_PUBLIC_WEB_APP_URL }}
+        run: |
+          npx eas-cli build \
+            --platform ios \
+            --profile production \
+            --local \
+            --non-interactive \
+            --output ./build-ci.ipa
+
+      - name: Upload to TestFlight via altool
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+        run: |
+          xcrun altool \
+            --upload-app \
+            -f ./build-ci.ipa \
+            -t ios \
+            -u "$APPLE_ID" \
+            -p "$APP_SPECIFIC_PASSWORD" \
+            --verbose
+
+      - name: Remove IPA artifact
+        if: always()
+        run: rm -f ./build-ci.ipa
+
+      - name: Write job summary
+        if: success()
+        run: |
+          echo "## iOS Build Success" >> $GITHUB_STEP_SUMMARY
+          echo "- buildNumber: **$BUILD_NUMBER**" >> $GITHUB_STEP_SUMMARY
+          echo "- Uploaded to TestFlight" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

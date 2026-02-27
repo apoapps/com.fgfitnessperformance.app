@@ -424,9 +424,11 @@ export function EmbeddedWebScreen({ path, title, tabName }: EmbeddedWebScreenPro
           const currentTab = getNativeTabForPath(initialCleanPath);
 
           if (targetTab && currentTab && targetTab !== currentTab) {
-            // Revert this WebView to its own tab path via replaceState (no history entry, no animation)
+            // Revert this WebView to its own tab root via full page navigation.
+            // NAVIGATE_TO uses window.location.href which forces Next.js to re-render,
+            // unlike NAVIGATE_REPLACE (replaceState) which only changes URL without re-render.
             webViewRef.current?.injectJavaScript(
-              buildInjectedMessage({ v: 2, type: 'NAVIGATE_REPLACE', path: initialCleanPath })
+              buildInjectedMessage({ v: 2, type: 'NAVIGATE_TO', path: initialCleanPath })
             );
             // Switch native tab bar
             router.replace(targetTab as any);

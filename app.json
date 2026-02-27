@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.apoapps.fgfitnessperformance",
-      "buildNumber": "21",
+      "buildNumber": "22",
       "icon": "./assets/ios/icon.icon",
       "associatedDomains": [
         "applinks:prod.fgfitnessperformance.com",
